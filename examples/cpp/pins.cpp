@@ -18,23 +18,23 @@ bool W65C02Pins::is_write()
 
 void W65C02Pins::set_pins(uint8_t pins[5])
 {
-    this->vector_pull = pin(pins, 0);
-    this->ready = pin(pins, 1);
-    this->phi1o = pin(pins, 2);
-    this->irq = pin(pins, 3);
-    this->memory_lock = pin(pins, 4);
-    this->nmi = pin(pins, 5);
-    this->sync = pin(pins, 6);
+    this->vector_pull = get_pin(pins, 0);
+    this->ready = get_pin(pins, 1);
+    this->phi1o = get_pin(pins, 2);
+    this->irq = get_pin(pins, 3);
+    this->memory_lock = get_pin(pins, 4);
+    this->nmi = get_pin(pins, 5);
+    this->sync = get_pin(pins, 6);
 
     this->addr = decode_addr(pins);
     this->data = decode_data(pins);
 
-    this->rw = pin(pins, 33);
-    this->bus_enable = pin(pins, 35);
-    this->phi2 = pin(pins, 36);
-    this->set_overflow = pin(pins, 37);
-    this->phi2o = pin(pins, 38);
-    this->reset = pin(pins, 39);
+    this->rw = get_pin(pins, 33);
+    this->bus_enable = get_pin(pins, 35);
+    this->phi2 = get_pin(pins, 36);
+    this->set_overflow = get_pin(pins, 37);
+    this->phi2o = get_pin(pins, 38);
+    this->reset = get_pin(pins, 39);
 }
 
 void W65C02Pins::set_buff(uint8_t buff[5])

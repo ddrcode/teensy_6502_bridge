@@ -1,0 +1,9 @@
+[package]
+name = "w65c02-program-runner"
+authors = ["ddrcode"]
+description = "Executes 6502 program on a real CPU via the 6502-Teensy bridge"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serialport = "4.3.0"

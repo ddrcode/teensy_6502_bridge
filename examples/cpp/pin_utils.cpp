@@ -10,7 +10,7 @@ uint16_t decode_addr(uint8_t pins[])
     };
     uint16_t addr = 0;
     for (int i = 0; i < 16; ++i) {
-        addr |= pin(pins, addr_pins[i]) << i;
+        addr |= get_pin(pins, addr_pins[i]) << i;
     }
     return addr;
 }
@@ -19,7 +19,7 @@ uint8_t decode_data(uint8_t pins[])
 {
     uint8_t data = 0;
     for (int i = 0; i < 8; ++i) {
-        data |= pin(pins, 32-i) << i;
+        data |= get_pin(pins, 32-i) << i;
     }
     return data;
 }
@@ -32,15 +32,17 @@ void set_data(uint8_t pins[], uint8_t data)
     }
 }
 
-uint8_t pin(uint8_t pins[], uint8_t pin)
+uint8_t get_pin(uint8_t pins[], uint8_t pin)
 {
-    return pins[pin / 8] & (1 << (pin % 8)) ? 1 : 0;
+    int cell = (39-pin) / 8;
+    return pins[cell] & (1 << (pin % 8)) ? 1 : 0;
 }
 
 void set_pin(uint8_t pins[], uint8_t pin, bool value)
 {
-    pins[pin/8] ^= value << (pin % 8);
-    pins[pin/8] ^= 1 << (pin % 8);
+    int cell = (39-pin) / 8;
+    pins[cell] ^= value << (pin % 8);
+    pins[cell] ^= 1 << (pin % 8);
 }
 
 string pins_to_string(uint8_t pins[])

@@ -4,15 +4,31 @@ The program in this folder executes 6502 binary, using the
 Teensy bridge. As 6502 needs RAM for functioning, the memory
 is emulated with a simple byte array in the program (on the host machine).
 
+This folder provides two implementations of the example (doing exactly the same):
+one in C++ and one in Rust.
+
 ## Compilation and execution
 
-1. Plug your Teensy with running Bridge app from this repo.
-   It's sufficient to have the CPU connected only with address, data,
-   Phi2 and Read/Write pins.
+For both, C++ and Rust program, make sure you connect your Teensy with running Bridge
+app from this repo first. The microcontroller must be connected in order to make the
+host computer recognise the serial port.
+
+It's sufficient to have the CPU connected only with address, data,
+Phi2 and Read/Write pins.
+
+### C++ version
+
 1. Check Teensy's port name (`arduino-cli board list`)
-   and update `configuration.hpp` file, if needed.
+   and update [`configuration.hpp`](cpp/configuration.hpp) file, if needed.
 1. Compile the example: `g++ -o example.out *.cpp`
 1. Execute the example app: `./example.out`
+
+### Rust version
+
+1. Check Teensy's port name (`arduino-cli board list`)
+   and update [`configuration.rs`](rust/src/configuration.rs) file, if needed.
+1. Compile the example: `cargo build`
+1. Execute the example app: `cargo run`
 
 ## Expected result
 
@@ -21,132 +37,71 @@ an output as showed below. It executes a tiny program, that adds two
 16-bit numbers together (see the [source](./test.asm)).
 
 ```text
-Cycle     2, Addr: 022b (0000001000101011), Data: 47, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle     3, Addr: 022b (0000001000101011), Data: ea, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle     4, Addr: 022b (0000001000101011), Data: ea, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle     5, Addr: ffff (1111111111111111), Data: 03, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle     6, Addr: ffff (1111111111111111), Data: 03, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle     7, Addr: 022c (0000001000101100), Data: 4c, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle     8, Addr: 022c (0000001000101100), Data: 4c, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle     9, Addr: 01d6 (0000000111010110), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    10, Addr: 01d6 (0000000111010110), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    11, Addr: 01d5 (0000000111010101), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    12, Addr: 01d5 (0000000111010101), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    13, Addr: 01d4 (0000000111010100), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    14, Addr: 01d4 (0000000111010100), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    15, Addr: fffc (1111111111111100), Data: 00, R/W: R, VP: 0, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    16, Addr: fffc (1111111111111100), Data: 00, R/W: R, VP: 0, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    17, Addr: fffd (1111111111111101), Data: 02, R/W: R, VP: 0, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    18, Addr: fffd (1111111111111101), Data: 02, R/W: R, VP: 0, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    19, Addr: 0200 (0000001000000000), Data: a0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    20, Addr: 0200 (0000001000000000), Data: a0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    21, Addr: 0201 (0000001000000001), Data: 01, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    22, Addr: 0201 (0000001000000001), Data: 01, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    23, Addr: 0202 (0000001000000010), Data: a9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    24, Addr: 0202 (0000001000000010), Data: a9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    25, Addr: 0203 (0000001000000011), Data: 05, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    26, Addr: 0203 (0000001000000011), Data: 05, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    27, Addr: 0204 (0000001000000100), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    28, Addr: 0204 (0000001000000100), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    29, Addr: 0205 (0000001000000101), Data: 10, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    30, Addr: 0205 (0000001000000101), Data: 10, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    31, Addr: 0010 (0000000000010000), Data: 10, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    32, Addr: 0010 (0000000000010000), Data: 05, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    33, Addr: 0206 (0000001000000110), Data: 46, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    34, Addr: 0206 (0000001000000110), Data: a9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    35, Addr: 0207 (0000001000000111), Data: ff, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    36, Addr: 0207 (0000001000000111), Data: ff, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    37, Addr: 0208 (0000001000001000), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    38, Addr: 0208 (0000001000001000), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    39, Addr: 0209 (0000001000001001), Data: 11, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    40, Addr: 0209 (0000001000001001), Data: 11, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    41, Addr: 0011 (0000000000010001), Data: 11, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    42, Addr: 0011 (0000000000010001), Data: ff, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    43, Addr: 020a (0000001000001010), Data: 47, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    44, Addr: 020a (0000001000001010), Data: a9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    45, Addr: 020b (0000001000001011), Data: da, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    46, Addr: 020b (0000001000001011), Data: da, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    47, Addr: 020c (0000001000001100), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    48, Addr: 020c (0000001000001100), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    49, Addr: 020d (0000001000001101), Data: 12, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    50, Addr: 020d (0000001000001101), Data: 12, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    51, Addr: 0012 (0000000000010010), Data: 12, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    52, Addr: 0012 (0000000000010010), Data: da, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    53, Addr: 020e (0000001000001110), Data: 44, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    54, Addr: 020e (0000001000001110), Data: a9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    55, Addr: 020f (0000001000001111), Data: 21, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    56, Addr: 020f (0000001000001111), Data: 21, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    57, Addr: 0210 (0000001000010000), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    58, Addr: 0210 (0000001000010000), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    59, Addr: 0211 (0000001000010001), Data: 13, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    60, Addr: 0211 (0000001000010001), Data: 13, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    61, Addr: 0013 (0000000000010011), Data: 13, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    62, Addr: 0013 (0000000000010011), Data: 21, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    63, Addr: 0212 (0000001000010010), Data: f4, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    64, Addr: 0212 (0000001000010010), Data: 18, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    65, Addr: 0213 (0000001000010011), Data: a5, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    66, Addr: 0213 (0000001000010011), Data: a5, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    67, Addr: 0213 (0000001000010011), Data: a5, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    68, Addr: 0213 (0000001000010011), Data: a5, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    69, Addr: 0214 (0000001000010100), Data: 11, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    70, Addr: 0214 (0000001000010100), Data: 11, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    71, Addr: 0011 (0000000000010001), Data: ff, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    72, Addr: 0011 (0000000000010001), Data: ff, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    73, Addr: 0215 (0000001000010101), Data: 65, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    74, Addr: 0215 (0000001000010101), Data: 65, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    75, Addr: 0216 (0000001000010110), Data: 13, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    76, Addr: 0216 (0000001000010110), Data: 13, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    77, Addr: 0013 (0000000000010011), Data: 21, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    78, Addr: 0013 (0000000000010011), Data: 21, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    79, Addr: 0217 (0000001000010111), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    80, Addr: 0217 (0000001000010111), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    81, Addr: 0218 (0000001000011000), Data: 15, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    82, Addr: 0218 (0000001000011000), Data: 15, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    83, Addr: 0015 (0000000000010101), Data: 15, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    84, Addr: 0015 (0000000000010101), Data: 20, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    85, Addr: 0219 (0000001000011001), Data: 40, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    86, Addr: 0219 (0000001000011001), Data: aa, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    87, Addr: 021a (0000001000011010), Data: a5, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    88, Addr: 021a (0000001000011010), Data: a5, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    89, Addr: 021a (0000001000011010), Data: a5, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    90, Addr: 021a (0000001000011010), Data: a5, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    91, Addr: 021b (0000001000011011), Data: 10, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    92, Addr: 021b (0000001000011011), Data: 10, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    93, Addr: 0010 (0000000000010000), Data: 05, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    94, Addr: 0010 (0000000000010000), Data: 05, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    95, Addr: 021c (0000001000011100), Data: 65, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    96, Addr: 021c (0000001000011100), Data: 65, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    97, Addr: 021d (0000001000011101), Data: 12, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle    98, Addr: 021d (0000001000011101), Data: 12, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle    99, Addr: 0012 (0000000000010010), Data: da, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   100, Addr: 0012 (0000000000010010), Data: da, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   101, Addr: 021e (0000001000011110), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   102, Addr: 021e (0000001000011110), Data: 85, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   103, Addr: 021f (0000001000011111), Data: 14, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   104, Addr: 021f (0000001000011111), Data: 14, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   105, Addr: 0014 (0000000000010100), Data: 14, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   106, Addr: 0014 (0000000000010100), Data: e0, R/W: W, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   107, Addr: 0220 (0000001000100000), Data: 22, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   108, Addr: 0220 (0000001000100000), Data: c9, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   109, Addr: 0221 (0000001000100001), Data: e0, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   110, Addr: 0221 (0000001000100001), Data: e0, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   111, Addr: 0222 (0000001000100010), Data: d0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   112, Addr: 0222 (0000001000100010), Data: d0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   113, Addr: 0223 (0000001000100011), Data: 07, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   114, Addr: 0223 (0000001000100011), Data: 07, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   115, Addr: 0224 (0000001000100100), Data: e0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   116, Addr: 0224 (0000001000100100), Data: e0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   117, Addr: 0225 (0000001000100101), Data: 20, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   118, Addr: 0225 (0000001000100101), Data: 20, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   119, Addr: 0226 (0000001000100110), Data: d0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   120, Addr: 0226 (0000001000100110), Data: d0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   121, Addr: 0227 (0000001000100111), Data: 03, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   122, Addr: 0227 (0000001000100111), Data: 03, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   123, Addr: 0228 (0000001000101000), Data: a0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   124, Addr: 0228 (0000001000101000), Data: a0, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   125, Addr: 0229 (0000001000101001), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
-Cycle   126, Addr: 0229 (0000001000101001), Data: 00, R/W: R, VP: 1, SYNC 0, IRQ 1, NMI 1, RES 1, PHI1O 0, PHI2O 1
-Cycle   127, Addr: 022a (0000001000101010), Data: 00, R/W: R, VP: 1, SYNC 1, IRQ 1, NMI 1, RES 1, PHI1O 1, PHI2O 0
+[1] Addr: 0000, Data: 00, Flags (VP, SYNC, RW): 000, Inputs (PHI, IRQ, NMI, RST): 0000
+[2] Addr: 022b, Data: ea, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[3] Addr: 022b, Data: ea, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[4] Addr: ffff, Data: 00, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[5] Addr: 022c, Data: 4c, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[6] Addr: 01e4, Data: 00, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[7] Addr: 01e3, Data: 00, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[8] Addr: 01e2, Data: 00, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[9] Addr: fffc, Data: 00, Flags (VP, SYNC, RW): 001, Inputs (PHI, IRQ, NMI, RST): 1111
+[10] Addr: fffd, Data: 02, Flags (VP, SYNC, RW): 001, Inputs (PHI, IRQ, NMI, RST): 1111
+[11] Addr: 0200, Data: a0, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[12] Addr: 0201, Data: 01, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[13] Addr: 0202, Data: a9, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[14] Addr: 0203, Data: 05, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[15] Addr: 0204, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[16] Addr: 0205, Data: 10, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[17] Addr: 0010, Data: 05, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[18] Addr: 0206, Data: a9, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[19] Addr: 0207, Data: ff, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[20] Addr: 0208, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[21] Addr: 0209, Data: 11, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[22] Addr: 0011, Data: ff, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[23] Addr: 020a, Data: a9, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[24] Addr: 020b, Data: da, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[25] Addr: 020c, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[26] Addr: 020d, Data: 12, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[27] Addr: 0012, Data: da, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[28] Addr: 020e, Data: a9, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[29] Addr: 020f, Data: 21, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[30] Addr: 0210, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[31] Addr: 0211, Data: 13, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[32] Addr: 0013, Data: 21, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[33] Addr: 0212, Data: 18, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[34] Addr: 0213, Data: a5, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[35] Addr: 0213, Data: a5, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[36] Addr: 0214, Data: 11, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[37] Addr: 0011, Data: ff, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[38] Addr: 0215, Data: 65, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[39] Addr: 0216, Data: 13, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[40] Addr: 0013, Data: 21, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[41] Addr: 0217, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[42] Addr: 0218, Data: 15, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[43] Addr: 0015, Data: 20, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[44] Addr: 0219, Data: aa, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[45] Addr: 021a, Data: a5, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[46] Addr: 021a, Data: a5, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[47] Addr: 021b, Data: 10, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[48] Addr: 0010, Data: 05, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[49] Addr: 021c, Data: 65, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[50] Addr: 021d, Data: 12, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[51] Addr: 0012, Data: da, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[52] Addr: 021e, Data: 85, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[53] Addr: 021f, Data: 14, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[54] Addr: 0014, Data: e0, Flags (VP, SYNC, RW): 100, Inputs (PHI, IRQ, NMI, RST): 1111
+[55] Addr: 0220, Data: c9, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[56] Addr: 0221, Data: e0, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[57] Addr: 0222, Data: d0, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[58] Addr: 0223, Data: 07, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[59] Addr: 0224, Data: e0, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[60] Addr: 0225, Data: 20, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[61] Addr: 0226, Data: d0, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[62] Addr: 0227, Data: 03, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[63] Addr: 0228, Data: a0, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
+[64] Addr: 0229, Data: 00, Flags (VP, SYNC, RW): 101, Inputs (PHI, IRQ, NMI, RST): 1111
+[65] Addr: 022a, Data: 00, Flags (VP, SYNC, RW): 111, Inputs (PHI, IRQ, NMI, RST): 1111
 ```
 
 ## How does the example work?

@@ -79,7 +79,7 @@ uint8_t buff[BUFFSIZE];
 
 void setup()
 {
-    Serial.begin(9600); // value ignored on Teensy for USB connection
+    Serial.begin(8388608); // value ignored on Teensy for USB connection
 
     // cpu status
     pinMode(pins.rw, INPUT);

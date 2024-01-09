@@ -93,8 +93,8 @@ void Runner::run()
 
 void Runner::print_state()
 {
-    cout << "Cycle " << setfill(' ') << setw(5) << right << dec << this->cycle
-         << ", Addr: " << setfill('0') << setw(4) << right << hex << this->pins.addr
+    cout << "[" << dec << this->cycle
+         << "] Addr: " << setfill('0') << setw(4) << right << hex << this->pins.addr
          << " (" << addr_to_binary_str(this->pins.addr)
          << "), Data: " << setfill('0') << setw(2) << right << hex << (uint16_t)this->pins.data
          << ", R/W: " << (this->pins.rw ? "R" : "W")

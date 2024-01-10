@@ -150,6 +150,47 @@ There is complete example program in the [examples folder](./examples), that dem
 how to execute 6502 binary with the bridge and RAM emulated on the host machine
 (not on Teensy). See the [Readme file](.examples/README.md) for details.
 
+## Data structure and message protocol
+
+The communication "protocol" is very simple - every message sent to and going from serial port contains the status of all 40 CPU pins (one per bit). 
+Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant 
+bit. In practice that number is being transferred via serial port as buffer of 5 bytes in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
+so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right). The table below illustrates the exact structure of a message.
+
+| Byte | Bit 7  | Bit 6  | Bit 5  | Bit 4  | Bit 3  | Bit 2  | Bit 1  | Bit 0  |
+|----- | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
+| 0    | Pin 40<br>`RES/` | Pin 39<br>`PHI2O`| Pin 38<br>`SO/` | Pin 37<br>`PHI2`| Pin 36<br>`BE`  | Pin 35<br>`NC`  | Pin 34<br>`RW/` | Pin 33<br>`D0`  |
+| 1    | Pin 32<br>`D1`   | Pin 31<br>`D2`   | Pin 30<br>`D3`  | Pin 29<br>`D4`  | Pin 28<br>`D5`  | Pin 27<br>`D6`  | Pin 26<br>`D7`  | Pin 25<br>`A15` |
+| 2    | Pin 24<br>`A14`  | Pin 23<br>`A13`  | Pin 22<br>`A12` | Pin 21<br>`VSS` | Pin 20<br>`A11` | Pin 19<br>`A10` | Pin 18<br>`A9`  | Pin 17<br>`A8`  |
+| 3    | Pin 16<br>`A7`   | Pin 15<br>`A6`   | Pin 14<br>`A5`  | Pin 13<br>`A4`  | Pin 12<br>`A3`  | Pin 11<br>`A2`  | Pin 10<br>`A1`  | Pin  9<br>`A0`  |
+| 4    | Pin  8<br>`VDD`  | Pin  7<br>`SYNC` | Pin  6<br>`NMI/`| Pin  5<br>`ML/` | Pin  4<br>`IRQ/`| Pin 3<br>`PHI1O`| Pin  2<br>`RDY` | Pin  1<br>`VP/` |
+
+### Messaging order
+As the Teensy Bridge doesn't implement a clock, the communication must start on the host side - that means the host is responsible for
+sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every data package being sent from
+the host. 
+
+Every write to the Teensy Bridge must be followed by a read, even if we are not planning to use the data from the Bridge.
+That can be understood as follows: every single half-cycle (the cpu phase), consist of write to serial port followed by a read.
+A full CPU cycle will consit of write-read-write-read operations, with pin 37 being set to 0 for the first time and 1 for second.
+
+When the CPU is in the first half-cycle, it executes internal operations, resulting in setting address bus and the `RW\` pin. 
+The 2nd half-cycle is a _memory cycle_, when the CPU writes or reads its data pins. The algorithm below demonstrates the 
+the typical interaction with the CPU, respecting both CPU phases. 
+
+1. First half-cycle
+    1. Set `PHI2` pin to LOW (0)
+    2. Write buffer to serial port
+    3. Read buffer from serial port
+    4. Extract address and read/write state (pin 34) from the buffer
+2. Second half-cycle
+    1. Set `PHI2` pin to HIGH (1)
+    2. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
+    3. Write buffer to serial port
+    4. Read buffer from serial port
+    5. In case of write operation (pin 34 was low in first half-cycle) - read the value from data pins and save in memory.  
+
+
 ## Working with other CPUs from the 6502 family
 
 This project is meant to work specifically with W65C02 CPU. The main reason

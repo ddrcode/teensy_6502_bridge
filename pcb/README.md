@@ -1,6 +1,6 @@
 # PCB
 
-This folder contains schematics and PCB files (Gerber)   of 6502-Teensy Bridge.
+This folder contains schematics, PCB files (Gerber) and list of components of 6502-Teensy Bridge.
 
 ## Schematics
 
@@ -19,7 +19,7 @@ This folder contains schematics and PCB files (Gerber)   of 6502-Teensy Bridge.
 ### Mandatory components
 
 | Ref | Component | Qty | Size | Description |
-|-----|--------|------|------|
+|-----|-----------|-----|------|-------------|
 | U1 | W65C02 or W65C816 | 1 | PDIP-40 | CPU |
 | U2 | Teensy 4.1 | 1 | | Microcontroller dev board |
 | U6 | [DS1818-10](https://www.mouser.co.uk/datasheet/2/609/DS1818-3122611.pdf) | 1 | TO-92-3 | EconoReset with push button |
@@ -32,14 +32,14 @@ This folder contains schematics and PCB files (Gerber)   of 6502-Teensy Bridge.
 #### Ethernet
 
 | Ref | Component | Qty | Size | Description |
-|-----|--------|------|------|
+|-----|-----------|-----|------|-------------|
 | RJ1 | J1B1211CCD | 1 | | RJ45 Socket |
 | C4 | 100nF | 1 | 0805 SMD | Unpolarized capacitor |
 
 #### Debugging LEDs
 
 | Ref | Component | Qty | Size | Description |
-|-----|--------|------|------|
+|-----|-----------|-----|------|-------------|
 | U3 | [CD74HC367E](https://www.ti.com/lit/ds/symlink/cd54hc368.pdf?ts=1706075936400) | 1 | PDIP-16 | Line driver |
 | U4 | [CD74HC368E](https://www.ti.com/lit/ds/symlink/cd54hc368.pdf?ts=1706075936400) | 1 | PDIP-16 | Inverting line driver |
 | C2,C3 | 100nF | 2 | 0805 SMD | Unpolarized capacitor |
@@ -53,7 +53,7 @@ This folder contains schematics and PCB files (Gerber)   of 6502-Teensy Bridge.
 #### SPI Screen
 
 | Ref | Component | Qty | Size | Description |
-|-----|--------|------|------|
+|-----|-----------|-----|------|-------------|
 | U5 | [ADAFRUIT ILI9341](https://www.adafruit.com/product/1743) | 1 | PDIP-16 | 3.2", 320x200px SPI screen |
 | C5 | 100nF | 1 | 0805 SMD | Unpolarized capacitor |
 | R11 | 100 Ohm | 1 | 0805 SMD | Screen light resistor |

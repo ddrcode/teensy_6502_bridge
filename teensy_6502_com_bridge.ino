@@ -107,12 +107,12 @@ void setup()
     }
 
     // intialize output pins
-    digitalWrite(pins.irq, HIGH);
-    digitalWrite(pins.nmi, HIGH);
-    digitalWrite(pins.be, HIGH);
+    digitalWriteFast(pins.irq, HIGH);
+    digitalWriteFast(pins.nmi, HIGH);
+    digitalWriteFast(pins.be, HIGH);
     reset();
-    digitalWrite(pins.ready, HIGH);
-    digitalWrite(pins.so, HIGH);
+    digitalWriteFast(pins.ready, HIGH);
+    digitalWriteFast(pins.so, HIGH);
 }
 
 void loop()
@@ -167,11 +167,11 @@ void reset()
     static const int CYCLE_DURATION = 50;
 #endif
 
-    digitalWrite( pins.reset, LOW);
+    digitalWriteFast( pins.reset, LOW);
     delay(CYCLE_DURATION);
-    digitalWrite( pins.reset, LOW);
+    digitalWriteFast( pins.reset, LOW);
     delay(CYCLE_DURATION);
-    digitalWrite( pins.reset, HIGH);
+    digitalWriteFast( pins.reset, HIGH);
     delay(CYCLE_DURATION);
 }
 
@@ -203,7 +203,7 @@ void print_status(pins_t &pins)
 
 void handle_cycle(pins_t &pins)
 {
-    auto rw = digitalRead(pins.rw);
+    auto rw = digitalReadFast(pins.rw);
     set_data_pins(pins.data, rw == HIGH ? OUTPUT : INPUT);
 }
 
@@ -218,7 +218,7 @@ uint16_t get_val_from_pins(uint8_t addr_pins[], int len)
 {
     int addr = 0;
     for (int i = 0; i < len; ++i) {
-        addr |= digitalRead(addr_pins[i]) == HIGH ? (1 << i) : 0;
+        addr |= digitalReadFast(addr_pins[i]) == HIGH ? (1 << i) : 0;
     }
     return addr;
 }
@@ -230,7 +230,7 @@ void get_pins_state(uint8_t buff[BUFFSIZE])
         for(int j=0; j < 8; ++j) {
             auto id = pin_ids[i*8 + j];
             if (id > 0) {
-                buff[BUFFSIZE - i - 1] |= digitalRead(id) == HIGH ? 1 << j : 0;
+                buff[BUFFSIZE - i - 1] |= digitalReadFast(id) == HIGH ? 1 << j : 0;
             }
         }
     }
@@ -238,8 +238,6 @@ void get_pins_state(uint8_t buff[BUFFSIZE])
 
 void set_pins_state(const uint8_t buff[BUFFSIZE])
 {
-    bool phase = digitalRead(pins.phi2o) == HIGH;
-
     write_pin(buff, 3); // irq
     write_pin(buff, 5); // nmi
     write_pin(buff, 35); // be
@@ -247,7 +245,7 @@ void set_pins_state(const uint8_t buff[BUFFSIZE])
     write_pin(buff, 37); // so
     write_pin(buff, 39); // reset
 
-    if (digitalRead(pins.rw) == HIGH) {
+    if (digitalReadFast(pins.rw) == HIGH) {
         for (int i = 32; i > 24; --i) {
             write_pin(buff, i);
         }
@@ -257,7 +255,7 @@ void set_pins_state(const uint8_t buff[BUFFSIZE])
 void write_pin(const uint8_t buff[BUFFSIZE], uint8_t pin_id)
 {
     bool val = buff[(39-pin_id) / 8] & (1 << (pin_id % 8));
-    digitalWrite(pin_ids[pin_id], val ? HIGH : LOW);
+    digitalWriteFast(pin_ids[pin_id], val ? HIGH : LOW);
 }
 
 pins_t setup_pins(uint8_t pin_ids[])

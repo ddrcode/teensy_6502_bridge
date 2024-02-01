@@ -30,44 +30,50 @@ power/ground and pin 35 is unused). As Teensy board is equipped with 41 digital 
 and allows for serial connection via USB, it seems to be a perfect match for this project.
 It is very simple to create this bridge on a breadboard.
 
-Below there is a pinout diagram of the W65C02 CPU
+Below there is a pinout diagram of the W65C02 and Teensy, as well
+as mapping between the CPU and Teensy pins.
 
 ```text
-            +------------+
-    VP/ <-- |  1      40 | <-- RES/
-    RDY <-> |  2      39 | --> PHI2O
-  PHI1O <-- |  3      38 | <-- SO/
-   IRQ/ --> |  4      37 | <-- PHI2
-    ML/ <-- |  5     @36 | <-- BE
-   NMI/ --> |  6      35 | --- NC
-   SYNC <-- |  7     *34 | --> RW/
-    VDD --> |  8     *33 | <-> D0
-     A0 <-- |  9*    *32 | <-> D1
-     A1 <-- | 10*    *31 | <-> D2
-     A2 <-- | 11*    *30 | <-> D3
-     A3 <-- | 12*    *29 | <-> D4
-     A4 <-- | 13*    *28 | <-> D5
-     A5 <-- | 14*    *27 | <-> D6
-     A6 <-- | 15*    *26 | <-> D7
-     A7 <-- | 16*    *25 | --> A15
-     A8 <-- | 17*    *24 | --> A14
-     A9 <-- | 18*    *23 | --> A13
-    A10 <-- | 19*    *22 | --> A12
-    A11 <-- | 20*     21 | --> GND
-            +------------+
-
-    * - tri-state pin,   @ - async,  / - active on low
+                                                        Teensy 4.1
+                                                     +--------------+
+                W65C02                           --- | GND      VIN | ---
+            +------------+                   VP/ --- |  0       GND | ---
+    VP/ <-- |  1      40 | <-- RES/              --- |  1      3.3V | ---
+    RDY <-> |  2      39 | --> PHI2O       PHI1O --- |  2        23 | --- RES/
+  PHI1O <-- |  3      38 | <-- SO/          IRQ/ --- |  3        22 | --- PHI2O
+   IRQ/ --> |  4      37 | <-- PHI2          ML/ --- |  4        21 | --- RDY
+    ML/ <-- |  5     @36 | <-- BE           NMI/ --- |  5        20 | --- SO/
+   NMI/ --> |  6      35 | --- NC           SYNC --- |  6        19 | --- BE
+   SYNC <-- |  7     *34 | --> RW/            A0 --- |  7        18 | ---
+    VDD --> |  8     *33 | <-> D0             A1 --- |  8        17 | --- RW/
+     A0 <-- |  9*    *32 | <-> D1             A2 --- |  9        16 | --- D0
+     A1 <-- | 10*    *31 | <-> D2                --- | 10        15 | --- D1
+     A2 <-- | 11*    *30 | <-> D3             A3 --- | 11        14 | --- D2
+     A3 <-- | 12*    *29 | <-> D4             A4 --- | 12        13 | --- PHI2
+     A4 <-- | 13*    *28 | <-> D5            VDD --- | 3.3V     GND | --- GND
+     A5 <-- | 14*    *27 | <-> D6             A5 --- | 24        41 | --- D3
+     A6 <-- | 15*    *26 | <-> D7             A6 --- | 25        40 | --- D4
+     A7 <-- | 16*    *25 | --> A15               --- | 26        39 | --- D5
+     A8 <-- | 17*    *24 | --> A14               --- | 27        38 | --- D6
+     A9 <-- | 18*    *23 | --> A13            A7 --- | 28        37 | --- D7
+    A10 <-- | 19*    *22 | --> A12            A8 --- | 29        36 | --- A15
+    A11 <-- | 20*     21 | --> GND            A9 --- | 30        35 | --- A14
+            +------------+                   A10 --- | 31        34 | --- A13
+                                             A11 --- | 32        33 | --- A12
+    * - tri-state pin,                               +--------------+
+    @ - async,
+    / - active on low
 ```
 
 ### Default configuration
 
-The table below illustrates the default configuration of this project.
+The table below (and pinouts above) illustrates the default configuration of the project.
 In order to adjust the pin mapping, modify the `PINS_MAP` macro definition in the
 [configuration file](./configuration.h).
 
-The pin assignemt is organised the way, that it leaves one SPI interface
-available, that can be used for additional device (i.e. the [PCB](./pcb/)
-gives the option to connect ILI9341 screen). 
+The pin assignment is organized the way, that it leaves one SPI interface
+available (pins 1, 10, 26 and 27), that can be used for additional device (i.e. the [PCB](./pcb/)
+gives the option to connect ILI9341 screen).
 
 | Teensy pin | CPU pin | CPU pin name | ←  → | CPU Pin name  | CPU pin | Teensy pin |
 | ---------- | ------- | ------------ | ---- | ------------- | ------- | ---------- |
@@ -114,12 +120,21 @@ then the best option is to connect the pin via
 
 ### Example
 
-![Example wiring](./assets/board.jpg)
-
-The photo shows wiring on solderable prototype board (a regular breadbord could be used instead). 
+The photo shows wiring on solderable prototype board (a regular breadbord could be used instead).
 All CPU pins are connected to Teensy, apart the pin 35 (NC).
 The CPU pin 8 (VDD) is connected via [decoupling capacitor](https://en.wikipedia.org/wiki/Decoupling_capacitor).
 Additionally, there are some LEDs to indicate some of the signals.
+
+![Example wiring](./assets/board.jpg)
+
+### Schematic and extended configuration
+
+The schematic below illustrates the connectivity between Teensy and the CPU, but also
+provides some optional configuration:
+- reset button
+- indication LEDs
+- SPI connectivity with ILI9341 LCD.
+![Schematic](./pcb/schematics/teensy-bridge-v1.png)
 
 ### Warning
 
@@ -165,8 +180,8 @@ how to execute 6502 binary with the bridge and RAM emulated on the host machine
 
 ## Data structure and message protocol
 
-The communication "protocol" is very simple - every message sent to and going from serial port contains the status of all 40 CPU pins (one per bit). 
-Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant 
+The communication "protocol" is very simple - every message sent to and going from serial port contains the status of all 40 CPU pins (one per bit).
+Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant
 bit. In practice that number is being transferred via serial port as buffer of 5 bytes in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
 so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right), etc. The table below illustrates the exact structure of a message.
 
@@ -181,16 +196,16 @@ so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right), etc
 ### Messaging order
 As the Teensy Bridge doesn't implement a clock, the communication must start on the host side - that means the host is responsible for
 sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every data package being sent from
-the host. 
+the host.
 
 Every write to the Teensy Bridge must be followed by a read, even if we are not planning to use the data from the Bridge
-(typical request-response approach). 
+(typical request-response approach).
 That can be understood as follows: every single half-cycle (the cpu phase), consist of write to serial port followed by a read.
 A full CPU cycle will consit of write-read-write-read operations, with pin 37 being set to 0 for the first time and 1 for second.
 
-When the CPU is in the first half-cycle, it executes internal operations, resulting in setting address bus and the `RW\` pin. 
-The 2nd half-cycle is a _memory cycle_, when the CPU writes or reads its data pins. The algorithm below demonstrates the 
-the typical interaction with the CPU, respecting both CPU phases. 
+When the CPU is in the first half-cycle, it executes internal operations, resulting in setting address bus and the `RW\` pin.
+The 2nd half-cycle is a _memory cycle_, when the CPU writes or reads its data pins. The algorithm below demonstrates the
+the typical interaction with the CPU, respecting both CPU phases.
 
 1. First half-cycle
     1. Set `PHI2` pin to LOW (0)
@@ -202,7 +217,7 @@ the typical interaction with the CPU, respecting both CPU phases.
     2. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
     3. Write buffer to serial port
     4. Read buffer from serial port
-    5. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.  
+    5. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.
 
 
 ## Working with other CPUs from the 6502 family
@@ -212,12 +227,12 @@ is that W65C02 is static, that means it can be easily step-by-step cycled at any
 that is very useful in case of debugging. Some other CPUs, like C64's MOS6510, have
 limitations of a minimum speed (~100kHz).
 
-The project should work fine with other CPUs from WDC family, especially with  
+The project should work fine with other CPUs from WDC family, especially with
 65C802, due to pin layout compatibility. Although untested, the 65C802 should work
 as is without any changes in the current code.
 
 There is plan to make the project fully compatible with W65C816, however that
-requiresd some changed in handling 24-bit address bus (there is already a 
+requiresd some changed in handling 24-bit address bus (there is already a
 [ticket](https://github.com/ddrcode/teensy_6502_bridge/issues/3) for that).
 
 This bridge may still work with some CPUs from the 6502 family, but some adjustments

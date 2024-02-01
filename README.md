@@ -65,28 +65,32 @@ The table below illustrates the default configuration of this project.
 In order to adjust the pin mapping, modify the `PINS_MAP` macro definition in the
 [configuration file](./configuration.h).
 
+The pin assignemt is organised the way, that it leaves one SPI interface
+available, that can be used for additional device (i.e. the [PCB](./pcb/)
+gives the option to connect ILI9341 screen). 
+
 | Teensy pin | CPU pin | CPU pin name | ←  → | CPU Pin name  | CPU pin | Teensy pin |
 | ---------- | ------- | ------------ | ---- | ------------- | ------- | ---------- |
-| 2          | 1       | Vector pull  |      | Reset         | 40      | 18         |
-| 21         | 2       | Ready        |      | PHI2O         | 39      | 1          |
-| 3          | 3       | PHI1O        |      | Set overflow  | 38      | 17         |
-| 20         | 4       | IRQ          |      | PHI2          | 37      | 16         |
-| 4          | 5       | Memory lock  |      | Bus enable    | 36      | 15         |
-| 19         | 6       | NMI          |      | No connection | 35      |            |
-| 5          | 7       | SYNC         |      | Read/Write    | 34      | 14         |
-| 3.3V       | 8       | VDD          |      | D0            | 33      | 40         |
-| 6          | 9       | A0           |      | D1            | 32      | 39         |
-| 7          | 10      | A1           |      | D2            | 31      | 38         |
-| 8          | 11      | A2           |      | D3            | 30      | 37         |
-| 9          | 12      | A3           |      | D4            | 29      | 36         |
-| 10         | 13      | A4           |      | D5            | 28      | 35         |
-| 11         | 14      | A5           |      | D6            | 27      | 34         |
-| 12         | 15      | A6           |      | D7            | 26      | 33         |
-| 24         | 16      | A7           |      | A15           | 25      | 29         |
-| 25         | 17      | A8           |      | A14           | 24      | 30         |
-| 26         | 18      | A9           |      | A13           | 23      | 31         |
-| 27         | 19      | A10          |      | A12           | 22      | 32         |
-| 28         | 20      | A11          |      | Ground        | 21      | GND        |
+| 0          | 1       | Vector pull  |      | Reset         | 40      | 23         |
+| 21         | 2       | Ready        |      | PHI2O         | 39      | 22         |
+| 2          | 3       | PHI1O        |      | Set overflow  | 38      | 20         |
+| 3          | 4       | IRQ          |      | PHI2          | 37      | 13         |
+| 4          | 5       | Memory lock  |      | Bus enable    | 36      | 19         |
+| 5          | 6       | NMI          |      | No connection | 35      |            |
+| 6          | 7       | SYNC         |      | Read/Write    | 34      | 17         |
+| 3.3V       | 8       | VDD          |      | D0            | 33      | 16         |
+| 7          | 9       | A0           |      | D1            | 32      | 15         |
+| 8          | 10      | A1           |      | D2            | 31      | 14         |
+| 9          | 11      | A2           |      | D3            | 30      | 41         |
+| 11         | 12      | A3           |      | D4            | 29      | 40         |
+| 12         | 13      | A4           |      | D5            | 28      | 39         |
+| 24         | 14      | A5           |      | D6            | 27      | 38         |
+| 25         | 15      | A6           |      | D7            | 26      | 37         |
+| 28         | 16      | A7           |      | A15           | 25      | 36         |
+| 29         | 17      | A8           |      | A14           | 24      | 35         |
+| 30         | 18      | A9           |      | A13           | 23      | 34         |
+| 31         | 19      | A10          |      | A12           | 22      | 33         |
+| 32         | 20      | A11          |      | Ground        | 21      | GND        |
 
 ### Minimal configuration
 
@@ -111,8 +115,9 @@ then the best option is to connect the pin via
 ### Example
 
 ![Example wiring](./assets/board.jpg)
-The photo demonstrates the complete configuration, as per table above (all CPU pins are
-connected to Teensy, apart pin 35).
+
+The photo shows wiring on solderable prototype board (a breadbord could be used instead). 
+All CPU pins are connected to Teensy, apart the pin 35 (NC).
 The CPU pin 8 (VDD) is connected via [decoupling capacitor](https://en.wikipedia.org/wiki/Decoupling_capacitor).
 Additionally, there are some LEDs to indicate some of the signals.
 

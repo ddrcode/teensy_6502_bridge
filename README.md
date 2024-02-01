@@ -15,6 +15,14 @@ other purpose too, i.e.:
   video chip) remain emulated
   (something like [Neo 6502](https://www.olimex.com/Products/Retro-Computers/Neo6502/open-source-hardware)).
 
+## Content of this repo
+
+- C++ code for Teensy 4.1 that enables communication between serial port and the CPU.
+- [Examples](./examples/) (in C++ and Rust) demonstrating how to use the Bridge from a program running on a
+  computer.
+- Explanation how to wire Teensy with W65C02 on a breadboard.
+- Complete [PCB design and schematics](./pcb/) (with some extra features).
+
 ## Wiring
 
 The W65C02 CPU is a 40-pin chip, with 37 data pins (2 pins are for
@@ -98,7 +106,7 @@ Please note that the `RES` (pin 40) must be kept low for at least two cycles on 
 The bridge handles it programmatically, but if your intention is not to connect RST pin to
 Teensy or to have a physical control over the reset state (i.e. in case of power failure),
 then the best option is to connect the pin via
-[DS1813](https://www.mouser.co.uk/datasheet/2/609/DS1813-3122044.pdf)
+[DS1818 Econo Reset](https://www.mouser.co.uk/datasheet/2/609/DS1818-3122611.pdf)
 
 ### Example
 
@@ -106,7 +114,7 @@ then the best option is to connect the pin via
 The photo demonstrates the complete configuration, as per table above (all CPU pins are
 connected to Teensy, apart pin 35).
 The CPU pin 8 (VDD) is connected via [decoupling capacitor](https://en.wikipedia.org/wiki/Decoupling_capacitor).
-Additionally there are some LEDs to indicate some of the signals.
+Additionally, there are some LEDs to indicate some of the signals.
 
 ### Warning
 

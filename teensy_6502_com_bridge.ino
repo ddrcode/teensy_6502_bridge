@@ -1,42 +1,44 @@
-// This code makes Teensy 4.1 a bridge betwen COM port and 65C02 processor.
-// Created with Teensyduino
+/*
+   This code makes Teensy 4.1 a bridge betwen serial port and 65C02 processor.
+
+   Created with Teensyduino
+   Author: ddrcode
+   Repository: https://github.com/ddrcode/teensy_6502_bridge/
+
+   Compilation: make build
+   Upload to Teensy: make upload
+
+   The MIT License
+   Copyright (C) 2023-2024 ddrcode
+
+   Permission is hereby granted, free of charge, to any person obtaining a
+   copy of this software and associated documentation files (the “Software”),
+   to deal in the Software without restriction, including without limitation
+   the rights to use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell copies of the Software, and to permit persons to whom the
+   Software is furnished to do so, subject to the following conditions:
+
+   The above copyright notice and this permission notice shall be included in
+   all copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+   OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+   THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+   FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+*/
 
 #include <_Teensy.h>
 #include <string>
 #include "configuration.h"
 
-#define BUFFSIZE 5
-
 //--------------------------------------------------------------------------
-// TYPES
+// GLOBAL DATA
 
-// W65C02 Pinout:
-//
-//            +------------+
-//     VP <-- |  1      40 | <-- RES
-//    RDY <-> |  2      39 | --> PHI2O
-//  PHI1O <-- |  3      38 | <-- SO
-//    IRQ --> |  4      37 | <-- PHI2
-//     ML <-- |  5     @36 | <-- BE
-//    NMI --> |  6      35 | --- NC
-//   SYNC <-- |  7     *34 | --> RW
-//    VDD --> |  8     *33 | <-> D0
-//     A0 <-- |  9*    *32 | <-> D1
-//     A1 <-- | 10*    *31 | <-> D2
-//     A2 <-- | 11*    *30 | <-> D3
-//     A3 <-- | 12*    *29 | <-> D4
-//     A4 <-- | 13*    *28 | <-> D5
-//     A5 <-- | 14*    *27 | <-> D6
-//     A6 <-- | 15*    *26 | <-> D7
-//     A7 <-- | 16*    *25 | --> A15
-//     A8 <-- | 17*    *24 | --> A14
-//     A9 <-- | 18*    *23 | --> A13
-//    A10 <-- | 19*    *22 | --> A12
-//    A11 <-- | 20*     21 | --> GND
-//            +------------+
-//
-//   * - tri-state, / - active on low, @ - async
-//
+constexpr int BUFFSIZE = 5;
+
 typedef struct t_w64c02_pins
 {
     // cpu control
@@ -77,42 +79,49 @@ uint8_t buff[BUFFSIZE];
 //--------------------------------------------------------------------------
 // PUBLIC API
 
+void set_pin_mode(uint8_t pin_id, int mode)
+{
+    if (pin_id != 255) {
+        pinMode(pin_id, mode);
+    }
+}
+
 void setup()
 {
     Serial.begin(8388608); // value ignored on Teensy for USB connection
 
     // cpu status
-    pinMode(pins.rw, INPUT);
-    pinMode(pins.sync, INPUT);
-    pinMode(pins.vp, INPUT);
-    pinMode(pins.ml, INPUT);
+    set_pin_mode(pins.rw, INPUT);
+    set_pin_mode(pins.sync, INPUT);
+    set_pin_mode(pins.vp, INPUT);
+    set_pin_mode(pins.ml, INPUT);
 
     // cpu control
-    pinMode(pins.irq, OUTPUT);
-    pinMode(pins.nmi, OUTPUT);
-    pinMode(pins.reset, OUTPUT);
-    pinMode(pins.ready, OUTPUT);
-    pinMode(pins.be, OUTPUT);
-    pinMode(pins.so, OUTPUT);
+    set_pin_mode(pins.irq, OUTPUT);
+    set_pin_mode(pins.nmi, OUTPUT);
+    set_pin_mode(pins.reset, OUTPUT);
+    set_pin_mode(pins.ready, OUTPUT);
+    set_pin_mode(pins.be, OUTPUT);
+    set_pin_mode(pins.so, OUTPUT);
 
     // clock
-    pinMode(pins.phi1o, INPUT);
-    pinMode(pins.phi2, OUTPUT);
-    pinMode(pins.phi2o, INPUT);
+    set_pin_mode(pins.phi1o, INPUT);
+    set_pin_mode(pins.phi2, OUTPUT);
+    set_pin_mode(pins.phi2o, INPUT);
 
     // data
     set_data_pins(pins.data, INPUT);
     for (int i = 0; i < 16; ++i) {
-        pinMode(pins.addr[i], INPUT);
+        set_pin_mode(pins.addr[i], INPUT);
     }
 
     // intialize output pins
-    digitalWrite(pins.irq, HIGH);
-    digitalWrite(pins.nmi, HIGH);
-    digitalWrite(pins.be, HIGH);
+    write_pin(pins.irq, HIGH);
+    write_pin(pins.nmi, HIGH);
+    write_pin(pins.be, HIGH);
     reset();
-    digitalWrite(pins.ready, HIGH);
-    digitalWrite(pins.so, HIGH);
+    write_pin(pins.ready, HIGH);
+    write_pin(pins.so, HIGH);
 }
 
 void loop()
@@ -167,11 +176,11 @@ void reset()
     static const int CYCLE_DURATION = 50;
 #endif
 
-    digitalWrite( pins.reset, LOW);
+    write_pin( pins.reset, LOW);
     delay(CYCLE_DURATION);
-    digitalWrite( pins.reset, LOW);
+    write_pin( pins.reset, LOW);
     delay(CYCLE_DURATION);
-    digitalWrite( pins.reset, HIGH);
+    write_pin( pins.reset, HIGH);
     delay(CYCLE_DURATION);
 }
 
@@ -181,7 +190,7 @@ void print_pin(std::string label, uint8_t pin)
     Serial.print(", ");
     Serial.print(label.c_str());
     Serial.print("=");
-    Serial.print(digitalRead(pin) == HIGH ? 1 : 0);
+    Serial.print(read_pin(pin) == HIGH ? 1 : 0);
 }
 
 void print_status(pins_t &pins)
@@ -203,7 +212,7 @@ void print_status(pins_t &pins)
 
 void handle_cycle(pins_t &pins)
 {
-    auto rw = digitalRead(pins.rw);
+    auto rw = read_pin(pins.rw);
     set_data_pins(pins.data, rw == HIGH ? OUTPUT : INPUT);
 }
 
@@ -218,7 +227,7 @@ uint16_t get_val_from_pins(uint8_t addr_pins[], int len)
 {
     int addr = 0;
     for (int i = 0; i < len; ++i) {
-        addr |= digitalRead(addr_pins[i]) == HIGH ? (1 << i) : 0;
+        addr |= read_pin(addr_pins[i]) == HIGH ? (1 << i) : 0;
     }
     return addr;
 }
@@ -230,7 +239,7 @@ void get_pins_state(uint8_t buff[BUFFSIZE])
         for(int j=0; j < 8; ++j) {
             auto id = pin_ids[i*8 + j];
             if (id > 0) {
-                buff[BUFFSIZE - i - 1] |= digitalRead(id) == HIGH ? 1 << j : 0;
+                buff[BUFFSIZE - i - 1] |= read_pin(id) == HIGH ? 1 << j : 0;
             }
         }
     }
@@ -238,26 +247,39 @@ void get_pins_state(uint8_t buff[BUFFSIZE])
 
 void set_pins_state(const uint8_t buff[BUFFSIZE])
 {
-    bool phase = digitalRead(pins.phi2o) == HIGH;
+    write_pin(3,  buff); // irq
+    write_pin(5,  buff); // nmi
+    write_pin(35, buff); // be
+    write_pin(36, buff); // phi2
+    write_pin(37, buff); // so
+    write_pin(39, buff); // reset
 
-    write_pin(buff, 3); // irq
-    write_pin(buff, 5); // nmi
-    write_pin(buff, 35); // be
-    write_pin(buff, 36); // phi2
-    write_pin(buff, 37); // so
-    write_pin(buff, 39); // reset
-
-    if (digitalRead(pins.rw) == HIGH) {
+    if (read_pin(pins.rw) == HIGH) {
         for (int i = 32; i > 24; --i) {
-            write_pin(buff, i);
+            write_pin(i, buff);
         }
     }
 }
 
-void write_pin(const uint8_t buff[BUFFSIZE], uint8_t pin_id)
+inline int read_pin(const uint8_t pin_id)
 {
-    bool val = buff[(39-pin_id) / 8] & (1 << (pin_id % 8));
-    digitalWrite(pin_ids[pin_id], val ? HIGH : LOW);
+    return pin_id == 255 ? LOW : digitalReadFast(pin_id);
+}
+
+inline void write_pin(const uint8_t pin_id, const int val)
+{
+    if (pin_id != 255) {
+        digitalWriteFast(pin_id, val);
+    }
+}
+
+void write_pin(const uint8_t pin_id, const uint8_t buff[BUFFSIZE])
+{
+    auto id = pin_ids[pin_id];
+    if (id != 255) {
+        bool val = buff[(39-pin_id) / 8] & (1 << (pin_id % 8));
+        digitalWriteFast(id, val ? HIGH : LOW);
+    }
 }
 
 pins_t setup_pins(uint8_t pin_ids[])

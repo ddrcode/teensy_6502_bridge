@@ -15,6 +15,14 @@ other purpose too, i.e.:
   video chip) remain emulated
   (something like [Neo 6502](https://www.olimex.com/Products/Retro-Computers/Neo6502/open-source-hardware)).
 
+## Content of this repo
+
+- C++ code for Teensy 4.1 that enables communication between serial port and the CPU.
+- [Examples](./examples/) (in C++ and Rust) demonstrating how to use the Bridge from a program running on a
+  computer.
+- Explanation how to wire Teensy with W65C02 on a breadboard.
+- Complete [PCB design and schematics](./pcb/) (with some extra features).
+
 ## Wiring
 
 The W65C02 CPU is a 40-pin chip, with 37 data pins (2 pins are for
@@ -59,18 +67,18 @@ In order to adjust the pin mapping, modify the `PINS_MAP` macro definition in th
 
 | Teensy pin | CPU pin | CPU pin name | ←  → | CPU Pin name  | CPU pin | Teensy pin |
 | ---------- | ------- | ------------ | ---- | ------------- | ------- | ---------- |
-|  2         | 1       | Vector pull  |      | Reset         | 40      | 18         |
-| 21         | 2       | Ready        |      | PHI2O         | 39      |  1         |
-|  3         | 3       | PHI1O        |      | Set overflow  | 38      | 17         |
+| 2          | 1       | Vector pull  |      | Reset         | 40      | 18         |
+| 21         | 2       | Ready        |      | PHI2O         | 39      | 1          |
+| 3          | 3       | PHI1O        |      | Set overflow  | 38      | 17         |
 | 20         | 4       | IRQ          |      | PHI2          | 37      | 16         |
-|  4         | 5       | Memory lock  |      | Bus enable    | 36      | 15         |
+| 4          | 5       | Memory lock  |      | Bus enable    | 36      | 15         |
 | 19         | 6       | NMI          |      | No connection | 35      |            |
-|  5         | 7       | SYNC         |      | Read/Write    | 34      | 14         |
+| 5          | 7       | SYNC         |      | Read/Write    | 34      | 14         |
 | 3.3V       | 8       | VDD          |      | D0            | 33      | 40         |
-|  6         | 9       | A0           |      | D1            | 32      | 39         |
-|  7         | 10      | A1           |      | D2            | 31      | 38         |
-|  8         | 11      | A2           |      | D3            | 30      | 37         |
-|  9         | 12      | A3           |      | D4            | 29      | 36         |
+| 6          | 9       | A0           |      | D1            | 32      | 39         |
+| 7          | 10      | A1           |      | D2            | 31      | 38         |
+| 8          | 11      | A2           |      | D3            | 30      | 37         |
+| 9          | 12      | A3           |      | D4            | 29      | 36         |
 | 10         | 13      | A4           |      | D5            | 28      | 35         |
 | 11         | 14      | A5           |      | D6            | 27      | 34         |
 | 12         | 15      | A6           |      | D7            | 26      | 33         |
@@ -98,7 +106,7 @@ Please note that the `RES` (pin 40) must be kept low for at least two cycles on 
 The bridge handles it programmatically, but if your intention is not to connect RST pin to
 Teensy or to have a physical control over the reset state (i.e. in case of power failure),
 then the best option is to connect the pin via
-[DS1813](https://www.mouser.co.uk/datasheet/2/609/DS1813-3122044.pdf)
+[DS1818 Econo Reset](https://www.mouser.co.uk/datasheet/2/609/DS1818-3122611.pdf)
 
 ### Example
 
@@ -106,7 +114,7 @@ then the best option is to connect the pin via
 The photo demonstrates the complete configuration, as per table above (all CPU pins are
 connected to Teensy, apart pin 35).
 The CPU pin 8 (VDD) is connected via [decoupling capacitor](https://en.wikipedia.org/wiki/Decoupling_capacitor).
-Additionally there are some LEDs to indicate some of the signals.
+Additionally, there are some LEDs to indicate some of the signals.
 
 ### Warning
 
@@ -216,7 +224,6 @@ but definitely too slow in case of running any real-time applications.
 In example starting the C64 Kernal via the bridge takes around 300 seconds.
 
 I've created a [ticket](#8) for this issue. Contributors are welcome!
-
 
 ## References
 

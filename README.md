@@ -17,7 +17,7 @@ other purpose too, i.e.:
 
 ## Content of this repo
 
-- C++ code for Teensy 4.1 that enables communication between serial port and the CPU.
+- C++ code for Teensy 4.1 that enables full control over W65C02 CPU via serial port.
 - [Examples](./examples/) (in C++ and Rust) demonstrating how to use the Bridge from a program running on a
   computer.
 - Explanation how to wire Teensy with W65C02 on a breadboard.
@@ -100,14 +100,14 @@ In the minimalistic configuration the following CPU pins must be connected to th
 - `D0-D7` - data bus (input or output)
 - `RW` - read/write input; it informs whether the data bus is in read (high) or write (low) state
 - `PHI2` - clock signal input
-- `GND` - ground, should be connected with Teensy's ground pin
-- `VDD` - power; should be connected with Teensy's 3.3V pin
+- `GND` - ground, should be connected to Teensy's ground pin
+- `VDD` - power; should be connected to Teensy's 3.3V pin
 
-In such configuration `RES`, `IRQ`, `NMI` and `BE` pins must be also connected to 3.3V
-and `RDY` pin should be connected with power via resistor.
+In such configuration `RES`, `IRQ`, `NMI` and `BE` and `RDY` pins must be also connected to 3.3V,
+ideally via 1k resistor.
 
 Please note that the `RES` (pin 40) must be kept low for at least two cycles on power on.
-The bridge handles it programmatically, but if your intention is not to connect RST pin to
+The bridge handles it programmatically, but if your intention is to not connect RST pin to
 Teensy or to have a physical control over the reset state (i.e. in case of power failure),
 then the best option is to connect the pin via
 [DS1818 Econo Reset](https://www.mouser.co.uk/datasheet/2/609/DS1818-3122611.pdf)
@@ -116,14 +116,14 @@ then the best option is to connect the pin via
 
 ![Example wiring](./assets/board.jpg)
 
-The photo shows wiring on solderable prototype board (a breadbord could be used instead). 
+The photo shows wiring on solderable prototype board (a regular breadbord could be used instead). 
 All CPU pins are connected to Teensy, apart the pin 35 (NC).
 The CPU pin 8 (VDD) is connected via [decoupling capacitor](https://en.wikipedia.org/wiki/Decoupling_capacitor).
 Additionally, there are some LEDs to indicate some of the signals.
 
 ### Warning
 
-Incorrect connection may damage the CPU. Please take extra attention to the
+Incorrect connection may damage the CPU or the development board. Please take extra attention to the
 correctness of your wiring, and double-check it before powering up your board.
 
 ## Compilation and execution
@@ -140,7 +140,7 @@ correctness of your wiring, and double-check it before powering up your board.
 
 Follow [this post](https://forum.pjrc.com/index.php?threads/arduino-cli-and-ide-now-released-teensy-supported.53548/page-5#post-299430) to see how to configure Arduino CLI with Teensy.
 
-- to compile: `make`
+- to compile: `make build`
 - to upload `make upload`
 
 Make sure that the port name in `Makefile` is the correct one. To find the port name execute
@@ -168,7 +168,7 @@ how to execute 6502 binary with the bridge and RAM emulated on the host machine
 The communication "protocol" is very simple - every message sent to and going from serial port contains the status of all 40 CPU pins (one per bit). 
 Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant 
 bit. In practice that number is being transferred via serial port as buffer of 5 bytes in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
-so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right). The table below illustrates the exact structure of a message.
+so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right), etc. The table below illustrates the exact structure of a message.
 
 | Byte | Bit 7  | Bit 6  | Bit 5  | Bit 4  | Bit 3  | Bit 2  | Bit 1  | Bit 0  |
 |----- | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
@@ -183,7 +183,8 @@ As the Teensy Bridge doesn't implement a clock, the communication must start on 
 sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every data package being sent from
 the host. 
 
-Every write to the Teensy Bridge must be followed by a read, even if we are not planning to use the data from the Bridge.
+Every write to the Teensy Bridge must be followed by a read, even if we are not planning to use the data from the Bridge
+(typical request-response approach). 
 That can be understood as follows: every single half-cycle (the cpu phase), consist of write to serial port followed by a read.
 A full CPU cycle will consit of write-read-write-read operations, with pin 37 being set to 0 for the first time and 1 for second.
 
@@ -201,7 +202,7 @@ the typical interaction with the CPU, respecting both CPU phases.
     2. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
     3. Write buffer to serial port
     4. Read buffer from serial port
-    5. In case of write operation (pin 34 was low in first half-cycle) - read the value from data pins and save in memory.  
+    5. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.  
 
 
 ## Working with other CPUs from the 6502 family
@@ -210,6 +211,14 @@ This project is meant to work specifically with W65C02 CPU. The main reason
 is that W65C02 is static, that means it can be easily step-by-step cycled at any speed,
 that is very useful in case of debugging. Some other CPUs, like C64's MOS6510, have
 limitations of a minimum speed (~100kHz).
+
+The project should work fine with other CPUs from WDC family, especially with  
+65C802, due to pin layout compatibility. Although untested, the 65C802 should work
+as is without any changes in the current code.
+
+There is plan to make the project fully compatible with W65C816, however that
+requiresd some changed in handling 24-bit address bus (there is already a 
+[ticket](https://github.com/ddrcode/teensy_6502_bridge/issues/3) for that).
 
 This bridge may still work with some CPUs from the 6502 family, but some adjustments
 may need to be required, as the other processor may have different pin layout. Also,

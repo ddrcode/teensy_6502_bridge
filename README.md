@@ -67,18 +67,18 @@ In order to adjust the pin mapping, modify the `PINS_MAP` macro definition in th
 
 | Teensy pin | CPU pin | CPU pin name | ←  → | CPU Pin name  | CPU pin | Teensy pin |
 | ---------- | ------- | ------------ | ---- | ------------- | ------- | ---------- |
-|  2         | 1       | Vector pull  |      | Reset         | 40      | 18         |
-| 21         | 2       | Ready        |      | PHI2O         | 39      |  1         |
-|  3         | 3       | PHI1O        |      | Set overflow  | 38      | 17         |
+| 2          | 1       | Vector pull  |      | Reset         | 40      | 18         |
+| 21         | 2       | Ready        |      | PHI2O         | 39      | 1          |
+| 3          | 3       | PHI1O        |      | Set overflow  | 38      | 17         |
 | 20         | 4       | IRQ          |      | PHI2          | 37      | 16         |
-|  4         | 5       | Memory lock  |      | Bus enable    | 36      | 15         |
+| 4          | 5       | Memory lock  |      | Bus enable    | 36      | 15         |
 | 19         | 6       | NMI          |      | No connection | 35      |            |
-|  5         | 7       | SYNC         |      | Read/Write    | 34      | 14         |
+| 5          | 7       | SYNC         |      | Read/Write    | 34      | 14         |
 | 3.3V       | 8       | VDD          |      | D0            | 33      | 40         |
-|  6         | 9       | A0           |      | D1            | 32      | 39         |
-|  7         | 10      | A1           |      | D2            | 31      | 38         |
-|  8         | 11      | A2           |      | D3            | 30      | 37         |
-|  9         | 12      | A3           |      | D4            | 29      | 36         |
+| 6          | 9       | A0           |      | D1            | 32      | 39         |
+| 7          | 10      | A1           |      | D2            | 31      | 38         |
+| 8          | 11      | A2           |      | D3            | 30      | 37         |
+| 9          | 12      | A3           |      | D4            | 29      | 36         |
 | 10         | 13      | A4           |      | D5            | 28      | 35         |
 | 11         | 14      | A5           |      | D6            | 27      | 34         |
 | 12         | 15      | A6           |      | D7            | 26      | 33         |
@@ -183,7 +183,6 @@ but definitely too slow in case of running any real-time applications.
 In example starting the C64 Kernal via the bridge takes around 300 seconds.
 
 I've created a [ticket](#8) for this issue. Contributors are welcome!
-
 
 ## References
 

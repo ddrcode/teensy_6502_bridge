@@ -5,7 +5,7 @@ build:
 	arduino-cli compile -b $(FQBN) .
 
 debug:
-	arduino-cli compile -b $(FQBN) --build-property compiler.cpp.extra_flags=-fDEBUG_TEENSY_COM_BRIDGE -v .
+	arduino-cli compile -b $(FQBN) --build-property "build.extra_flags=\"-DDEBUG_TEENSY_COM_BRIDGE\"" .
 
 upload:
 	arduino-cli upload -b $(FQBN) --port $(PORT) .

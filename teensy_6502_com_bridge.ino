@@ -34,6 +34,10 @@
 #include <string>
 #include "configuration.h"
 
+extern "C" {
+    #include "src/protocol.h"
+}
+
 //--------------------------------------------------------------------------
 // GLOBAL DATA
 
@@ -131,7 +135,7 @@ void loop()
         return;
     }
 
-#ifdef DEBUG_TEENSY_COM_BRIDGE
+#ifdef DEBUG_TEENSY_BRIDGE
     loop_debug();
 #else
     loop_prod();
@@ -151,11 +155,13 @@ void loop_prod()
     set_pins_state(buff);
     handle_cycle(pins);
     get_pins_state(buff);
-    Serial.write(buff, BUFFSIZE);
+    msg_pins_t msg = create_pins_msg(buff);
+    Serial.write((uint8_t*)&msg, sizeof(msg));
+    // Serial.write(buff, BUFFSIZE);
     Serial.send_now();
 }
 
-#ifdef DEBUG_TEENSY_COM_BRIDGE
+#ifdef DEBUG_TEENSY_BRIDGE
 void loop_debug()
 {
     static int cycle = 0;
@@ -172,7 +178,7 @@ void loop_debug()
 
 void reset()
 {
-#ifndef DEBUG_TEENSY_COM_BRIDGE
+#ifndef DEBUG_TEENSY_BRIDGE
     static const int CYCLE_DURATION = 50;
 #endif
 
@@ -184,7 +190,7 @@ void reset()
     delay(CYCLE_DURATION);
 }
 
-#ifdef DEBUG_TEENSY_COM_BRIDGE
+#ifdef DEBUG_TEENSY_BRIDGE
 void print_pin(std::string label, uint8_t pin)
 {
     Serial.print(", ");

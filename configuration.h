@@ -6,9 +6,9 @@
 // Serial Monitor or screen).
 // This is handy in case of testing the correctness of your wiring.
 
-// #define DEBUG_TEENSY_COM_BRIDGE
+// #define DEBUG_TEENSY_BRIDGE
 
-#ifdef DEBUG_TEENSY_COM_BRIDGE
+#ifdef DEBUG_TEENSY_BRIDGE
 // the clock (in ms) is required only for debug mode.
 // The bridge itself is being "clocked" by the COM port
 // messages and as such doesn't provide any notion of cycles.

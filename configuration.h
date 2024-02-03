@@ -43,3 +43,7 @@
   30,  /*     A9 <-- | 18*    *23 | --> A13   */     34, \
   31,  /*    A10 <-- | 19*    *22 | --> A12   */     33, \
   32,  /*    A11 <-- | 20*     21 | --> GND   */    255
+
+constexpr bool SERIAL_ENABLED = true;
+constexpr bool ETHERNET_ENABLED = false;
+

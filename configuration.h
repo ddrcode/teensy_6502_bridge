@@ -8,12 +8,10 @@
 
 // #define DEBUG_TEENSY_BRIDGE
 
-#ifdef DEBUG_TEENSY_BRIDGE
 // the clock (in ms) is required only for debug mode.
 // The bridge itself is being "clocked" by the COM port
 // messages and as such doesn't provide any notion of cycles.
 #define CYCLE_DURATION 500
-#endif
 
 // PIN CONFIGURATION
 // For each W65C02 PIN (as in the comments), provide Teensy 4.1 pin no.

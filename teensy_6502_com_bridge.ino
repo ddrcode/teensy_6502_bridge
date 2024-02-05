@@ -33,59 +33,19 @@
 #include <_Teensy.h>
 #include <string>
 
-extern "C" {
-    #include "configuration.h"
-    #include "src/protocol.h"
-    #include "src/pins.h"
-    #include "src/cpu.h"
-    #include "src/io.h"
+#include "configuration.h"
+#include "src/protocol.hpp"
+#include "src/pins.hpp"
+#include "src/cpu.hpp"
+#include "src/io.hpp"
 
-    #ifdef DEBUG_TEENSY_BRIDGE
-        #include "src/debug.h"
-    #endif
-}
-
-//--------------------------------------------------------------------------
-// GLOBAL DATA
-
-constexpr int BUFFSIZE = 5;
-
-typedef struct t_w64c02_pins
-{
-    // cpu control
-    uint8_t ready;
-    uint8_t ml;  // memory lock
-    uint8_t be;  // bus enable
-    uint8_t so;  // set overflow
-    uint8_t reset;
-
-    // clock
-    uint8_t phi1o;
-    uint8_t phi2;
-    uint8_t phi2o;
-
-    // uint8_terrupts
-    uint8_t irq;
-    uint8_t nmi;
-
-    // data
-    uint8_t rw;
-    uint8_t addr[16];
-    uint8_t data[8];
-
-    // monitoring
-    uint8_t sync;
-    uint8_t vp;  // vector pull
-} pins_t;
-
-pins_t setup_pins(uint8_t pins[]);
-
-//--------------------------------------------------------------------------
-// GLOBAL DATA
+#ifdef DEBUG_TEENSY_BRIDGE
+    #include "src/debug.hpp"
+#endif
 
 uint8_t pin_ids[40];
 pins_t pins = setup_pins(pin_ids);
-uint8_t buff[BUFFSIZE];
+uint8_t buff[5];
 
 void setup()
 {
@@ -96,7 +56,7 @@ void setup()
     write_pin(pins.irq, HIGH);
     write_pin(pins.nmi, HIGH);
     write_pin(pins.be, HIGH);
-    reset();
+    reset(pins);
     write_pin(pins.ready, HIGH);
     write_pin(pins.so, HIGH);
 }
@@ -109,7 +69,7 @@ void loop()
     }
 
 #ifdef DEBUG_TEENSY_BRIDGE
-    loop_debug();
+    loop_debug(pins);
 #else
     loop_prod();
 #endif
@@ -125,9 +85,9 @@ void loop_prod()
 
     if (idx < 5) return;
     idx = 0;
-    set_pins_state(buff);
+    set_pins_state(pin_ids, pins, buff);
     handle_cycle(pins);
-    get_pins_state(buff);
+    get_pins_state(pin_ids, buff);
     msg_pins_t msg = create_pins_msg(buff);
     Serial.write((uint8_t*)&msg, sizeof(msg));
     // Serial.write(buff, BUFFSIZE);

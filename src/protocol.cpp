@@ -1,6 +1,6 @@
-#include <stdint.h>
-#include <string.h>
-#include "protocol.h"
+#include <cstdint>
+#include <cstring>
+#include "protocol.hpp"
 
 msg_pins_t create_pins_msg(uint8_t data[5])
 {
@@ -15,10 +15,10 @@ msg_pins_t create_pins_msg(uint8_t data[5])
 }
 
 msg_error_t create_error_msg(uint8_t code) {
-    auto msg = msg_error_t {
+    msg_error_t msg = {
         .id = MSG_ERROR,
         .code = code,
-        .checksum = MSG_ERROR + code
+        .checksum = static_cast<uint8_t>(MSG_ERROR + code)
     };
     return msg;
 }
@@ -33,10 +33,10 @@ uint8_t get_msg_size(const uint8_t msg_type) {
 }
 
 bool validate_checksum(const msg_wrapper_t msg) {
-    if (t.size < 3) return true;
-    let checksum = t.type;
-    for (uint8_t i=t.size-2; i>1; --i) {
-        checksum += t.bytes[i];
+    if (msg.size < 3) return true;
+    uint8_t checksum = msg.type;
+    for (uint8_t i=msg.size-2; i>1; --i) {
+        checksum += msg.bytes[i];
     }
-    return checksum == t.bytes[t.size-1];
+    return checksum == msg.bytes[msg.size-1];
 }

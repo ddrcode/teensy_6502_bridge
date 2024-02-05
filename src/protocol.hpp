@@ -1,8 +1,8 @@
 #pragma once
 
-typedef t_msg_wrapper {
+typedef struct t_msg_wrapper {
     uint8_t type;
-    usize_t size;
+    uint8_t size;
     uint8_t bytes[];
 } msg_wrapper_t;
 
@@ -13,7 +13,7 @@ typedef struct t_msg_pins
     uint8_t checksum;
 } msg_pins_t;
 
-typefef struct t_msg_error {
+typedef struct t_msg_error {
     uint8_t id;
     uint8_t code;
     uint8_t checksum;

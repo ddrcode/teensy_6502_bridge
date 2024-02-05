@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 constexpr int BUFFSIZE = 5;
 
 typedef struct t_w64c02_pins
@@ -32,9 +34,11 @@ typedef struct t_w64c02_pins
 
 void set_pin_mode(uint8_t pin_id, int mode);
 void set_data_pins_mode(uint8_t data[8], int direction);
-void get_pins_state(uint8_t buff[BUFFSIZE]);
-void set_pins_state(const uint8_t buff[BUFFSIZE]);
-inline int read_pin(const uint8_t pin_id);
-inline void write_pin(const uint8_t pin_id, const int val);
+void get_pins_state(uint8_t pin_ids[], uint8_t buff[BUFFSIZE]);
+void set_pins_state(uint8_t pin_ids[], pins_t& pins, const uint8_t buff[BUFFSIZE]);
+int read_pin(const uint8_t pin_id);
+void write_pin(const uint8_t pin_id, const int val);
+void write_pin(uint8_t pin_ids[], const uint8_t pin_id, const uint8_t buff[BUFFSIZE]);
 pins_t setup_pins(uint8_t pin_ids[]);
+uint16_t get_val_from_pins(uint8_t addr_pins[], int len);
 

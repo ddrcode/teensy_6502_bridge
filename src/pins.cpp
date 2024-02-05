@@ -27,9 +27,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
+#include <Arduino.h>
 #include <_Teensy.h>
+#include <cstdint>
+
 #include "../configuration.h"
-#include "pins.h"
+#include "pins.hpp"
 
 void set_pin_mode(uint8_t pin_id, int mode)
 {
@@ -54,7 +57,7 @@ uint16_t get_val_from_pins(uint8_t addr_pins[], int len)
     return addr;
 }
 
-void get_pins_state(uint8_t buff[BUFFSIZE])
+void get_pins_state(uint8_t pin_ids[], uint8_t buff[BUFFSIZE])
 {
     for(int i=0; i<BUFFSIZE; ++i) {
         buff[BUFFSIZE - i - 1] = 0;
@@ -67,47 +70,56 @@ void get_pins_state(uint8_t buff[BUFFSIZE])
     }
 }
 
-void set_pins_state(const uint8_t buff[BUFFSIZE])
+void set_pins_state(uint8_t pin_ids[], pins_t& pins, const uint8_t buff[BUFFSIZE])
 {
-    write_pin(3,  buff); // irq
-    write_pin(5,  buff); // nmi
-    write_pin(35, buff); // be
-    write_pin(36, buff); // phi2
-    write_pin(37, buff); // so
-    write_pin(39, buff); // reset
+    write_pin(pin_ids, 3,  buff); // irq
+    write_pin(pin_ids, 5,  buff); // nmi
+    write_pin(pin_ids, 35, buff); // be
+    write_pin(pin_ids, 36, buff); // phi2
+    write_pin(pin_ids, 37, buff); // so
+    write_pin(pin_ids, 39, buff); // reset
 
     if (read_pin(pins.rw) == HIGH) {
         for (int i = 32; i > 24; --i) {
-            write_pin(i, buff);
+            write_pin(pin_ids, i, buff);
         }
     }
 }
 
-inline int read_pin(const uint8_t pin_id)
+int read_pin(const uint8_t pin_id)
 {
     return pin_id == 255 ? LOW : digitalReadFast(pin_id);
 }
 
-inline void write_pin(const uint8_t pin_id, const int val)
+void write_pin(const uint8_t pin_id, const int val)
 {
     if (pin_id != 255) {
         digitalWriteFast(pin_id, val);
     }
 }
 
-void write_pin(const uint8_t pin_id, const uint8_t buff[BUFFSIZE])
+void write_pin(uint8_t pin_ids[], const uint8_t pin_id, const uint8_t buff[BUFFSIZE])
 {
-    auto id = pin_ids[pin_id];
+    uint8_t id = pin_ids[pin_id];
     if (id != 255) {
         bool val = buff[(39-pin_id) / 8] & (1 << (pin_id % 8));
         digitalWriteFast(id, val ? HIGH : LOW);
     }
 }
 
+void set_pin_ids(uint8_t ids[])
+{
+    uint8_t x[40] = { PINS_MAP };
+    for (int i = 0; i < 40; i += 2) {
+        ids[i / 2] = x[i];
+        ids[39 - i / 2] = x[i + 1];
+    }
+}
+
 pins_t setup_pins(uint8_t pin_ids[])
 {
     set_pin_ids(pin_ids);
-    auto p = pin_ids;
+    uint8_t *p = pin_ids;
 
     pins_t pins = {
         .ready = p[1],
@@ -127,14 +139,5 @@ pins_t setup_pins(uint8_t pin_ids[])
         .vp = p[0]
     };
     return pins;
-}
-
-void set_pin_ids(uint8_t ids[40])
-{
-    uint8_t x[40] = { PINS_MAP };
-    for (int i = 0; i < 40; i += 2) {
-        ids[i / 2] = x[i];
-        ids[39 - i / 2] = x[i + 1];
-    }
 }
 

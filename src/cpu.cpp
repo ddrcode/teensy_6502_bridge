@@ -27,8 +27,12 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include "cpu.h"
-#include "configuration.h"
+#include <Arduino.h>
+#include <_Teensy.h>
+
+#include "cpu.hpp"
+#include "pins.hpp"
+#include "../configuration.h"
 
 //--------------------------------------------------------------------------
 // GLOBAL DATA
@@ -55,18 +59,14 @@ void setup_cpu(pins_t& pins)
     set_pin_mode(pins.phi2o, INPUT);
 
     // data
-    set_data_pins(pins.data, INPUT);
+    set_data_pins_mode(pins.data, INPUT);
     for (int i = 0; i < 16; ++i) {
         set_pin_mode(pins.addr[i], INPUT);
     }
 }
 
-void reset()
+void reset(pins_t &pins)
 {
-#ifndef DEBUG_TEENSY_BRIDGE
-    static const int CYCLE_DURATION = 50;
-#endif
-
     write_pin( pins.reset, LOW);
     delay(CYCLE_DURATION);
     write_pin( pins.reset, LOW);
@@ -78,5 +78,5 @@ void reset()
 void handle_cycle(pins_t &pins)
 {
     auto rw = read_pin(pins.rw);
-    set_data_pins(pins.data, rw == HIGH ? OUTPUT : INPUT);
+    set_data_pins_mode(pins.data, rw == HIGH ? OUTPUT : INPUT);
 }

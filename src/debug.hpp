@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stdint.h>
-#include "pins.h"
+#include <cstdint>
+#include "pins.hpp"
 
 void loop_debug();
 void print_pin(char* label, uint8_t pin);

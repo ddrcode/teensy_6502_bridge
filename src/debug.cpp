@@ -1,6 +1,12 @@
-#include "debug.h"
+#include <Arduino.h>
+#include <_Teensy.h>
 
-void loop_debug()
+#include "debug.hpp"
+#include "pins.hpp"
+#include "cpu.hpp"
+#include "../configuration.h"
+
+void loop_debug(pins_t& pins)
 {
     static int cycle = 0;
     static bool phase = true;
@@ -13,7 +19,7 @@ void loop_debug()
     phase = !phase;
 }
 
-void print_pin(char* label, uint8_t pin)
+void print_pin(const char* label, const uint8_t pin)
 {
     Serial.print(", ");
     Serial.print(label);

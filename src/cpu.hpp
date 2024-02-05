@@ -1,7 +1,7 @@
 #pragma once
 
-#include "pins.h"
+#include "pins.hpp"
 
 void setup_cpu(pins_t& pins);
-void reset();
+void reset(pins_t& pins);
 void handle_cycle(pins_t &pins);

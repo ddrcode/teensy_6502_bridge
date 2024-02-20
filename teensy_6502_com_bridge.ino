@@ -83,13 +83,13 @@ void loop_prod()
     int byte = Serial.read();
     buff[idx++] = byte;
 
-    if (idx < 5) return;
+    if (idx < 7) return;
     idx = 0;
-    set_pins_state(pin_ids, pins, buff);
+    set_pins_state(pin_ids, pins, buff+1);
     handle_cycle(pins);
-    get_pins_state(pin_ids, buff);
-    msg_pins_t msg = create_pins_msg(buff);
+    get_pins_state(pin_ids, buff+1);
+    msg_pins_t msg = create_pins_msg(buff+1);
     Serial.write((uint8_t*)&msg, sizeof(msg));
-    // Serial.write(buff, BUFFSIZE);
+    // Serial.write(buff, 5);
     Serial.send_now();
 }

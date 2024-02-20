@@ -1,6 +1,7 @@
 mod configuration;
 mod pins;
 mod runner;
+mod protocol;
 
 use configuration::{PORT_NAME, PROGRAM_FILE};
 use pins::Pins;

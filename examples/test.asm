@@ -10,20 +10,28 @@
 ;;                  y=$da21
 ;; so the result is z=$e020
 ;;
-;; At the end, of the program compares the addition with expected values.
+;; At the end, the program compares the addition with expected values.
 ;; Registry Y should be 0 in case of correct result and 1 otherwise.
 ;; Registry A should contain hi-byte of the result and X - the low-byte.
 ;;
 ;; Additionally the program contains IRQ/NMI handling routine
 ;; (that does nothing), but the code should never be called in
-;; properly configured bridge. If you'd see it being executed then
-;; most likely your NMI or IRQ pins aren't connected.
+;; properly configured bridge. If you'd see it's being executed then
+;; most likely your NMI or IRQ pins aren't connected correctly.
 ;;
 ;; Assembler: ACME
 ;; Assembling command: acme -f plain -o test.p --cpu w65c02 test.asm
 
-; start on addres $200
+; start on addres $200 (right after page Zero and the stack)
 * = $0200
+
+setup:
+        ; set the interrupt vectors to $0300
+        LDA #$03
+        STA $ffff
+        STA $fffb
+        STZ $fffe
+        STZ $fffa
 
         ; correctness indicator (1=error)
         LDY #1
@@ -40,6 +48,7 @@
         LDA #$21
         STA $13
 
+add:
         ; add lo-byte and store the result in X and addr $15
         CLC
         LDA $11
@@ -52,6 +61,7 @@
         ADC $12
         STA $14
 
+test:
         ; check the result and set Y to 0 if correct
         CMP #$e0
         BNE end
@@ -59,18 +69,18 @@
         BNE end
         LDY #0
 
+end:
         ; end the program
-        BRK
-
-end
-        ; or enter an infinite loop
-        NOP
-        JMP end
+        BRK         ; the C++/Rust runner by default is configured to stop
+                    ; on BRK, so the program should end here, buf if not...
+irqloop:
+        WAI         ; ..it sends the CPU to sleep until interrupt
+        BRA irqloop ; in an infinite loop fasion
 
 ; interrupt handling
 ; (although interrupts shouldn't happen in this program)
 * = $0300
-        NOP
-        RTI
+        NOP         ; do nothing
+        RTI         ; and return to the program
 
 

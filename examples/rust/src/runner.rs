@@ -1,6 +1,7 @@
 use crate::{
     configuration::{CYCLE_DURATION, SHOW_RAW_DATA},
     pins::Pins,
+    protocol::PinsMsg
 };
 use serialport::SerialPort;
 use std::{fs::File, io::{self, Read}, path::PathBuf, thread::sleep};
@@ -81,25 +82,27 @@ impl Runner {
     /// Reads 5-bytes buffer from the serial port and updates
     /// `pins` field.
     fn read_port(&mut self) {
-        let mut buff: [u8; 5] = [0; 5];
+        let mut buff: [u8; 7] = [0; 7];
         self.port
             .read(&mut buff)
             .expect("Read error from serial port");
+        let msg = PinsMsg::from_bytes(&buff[..]);
         if SHOW_RAW_DATA {
-            print!("Reading: ");
-            print_buff(&buff);
+            println!("Reading: {}", msg);
+            // print_buff(&buff);
         }
-        self.pins = Pins::from(buff);
+        self.pins = Pins::from(msg.data);
     }
 
     /// Send the value of `pins` field into to serial port.
     fn write_port(&mut self) {
-        let buff: [u8; 5] = self.pins.into();
+        // let buff: [u8; 5] = self.pins.into();
+        let msg = PinsMsg::new(2, self.pins.into());
         if SHOW_RAW_DATA {
-            print!("Writing: ");
-            print_buff(&buff);
+            print!("Writing: {}", msg);
+            // print_buff(&buff);
         }
-        self.port.write(&buff).expect("Write error to serial port");
+        self.port.write(&msg.to_vec()).expect("Write error to serial port");
     }
 
     /// Changes phase of the clock and advances the clock count.

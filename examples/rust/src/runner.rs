@@ -102,7 +102,8 @@ impl Runner {
             print!("Writing: {}", msg);
             // print_buff(&buff);
         }
-        self.port.write(&msg.to_vec()).expect("Write error to serial port");
+        // self.port.write(&msg.to_vec()).expect("Write error to serial port");
+        self.port.write(&[0x02u8, 0x0a, 0x00, 0x00, 0x00, 0x28, 52]).expect("Write error to serial port");
     }
 
     /// Changes phase of the clock and advances the clock count.

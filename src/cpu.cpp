@@ -27,10 +27,8 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Arduino.h>
-#include <_Teensy.h>
-
 #include "cpu.hpp"
+#include "hardware.hpp"
 #include "pins.hpp"
 #include "../configuration.h"
 
@@ -63,15 +61,21 @@ void setup_cpu(pins_t& pins)
     for (int i = 0; i < 16; ++i) {
         set_pin_mode(pins.addr[i], INPUT);
     }
+
+    write_pin(pins.irq, HIGH);
+    write_pin(pins.nmi, HIGH);
+    write_pin(pins.be, HIGH);
+    write_pin(pins.ready, HIGH);
+    write_pin(pins.so, HIGH);
 }
 
 void reset(pins_t &pins)
 {
-    write_pin( pins.reset, LOW);
+    write_pin(pins.reset, LOW);
     delay(CYCLE_DURATION);
-    write_pin( pins.reset, LOW);
+    write_pin(pins.reset, LOW);
     delay(CYCLE_DURATION);
-    write_pin( pins.reset, HIGH);
+    write_pin(pins.reset, HIGH);
     delay(CYCLE_DURATION);
 }
 

@@ -1,10 +1,11 @@
 #pragma once
 
-typedef struct t_msg_wrapper {
+typedef struct t_message {
     uint8_t type;
     uint8_t size;
-    uint8_t bytes[];
-} msg_wrapper_t;
+    uint8_t checksum;
+    uint8_t data[5];
+} message_t;
 
 typedef struct t_msg_pins
 {
@@ -29,3 +30,7 @@ typedef enum t_msg_type
 
 msg_pins_t create_pins_msg(uint8_t data[5]);
 uint8_t get_msg_size(const uint8_t msg_type);
+uint8_t get_data_size(const uint8_t msg_type);
+uint8_t compute_checksum(const message_t * const msg);
+message_t create_msg_from_bytes(const uint8_t * const bytes);
+void msg_to_buff(const message_t * const msg, uint8_t buff[]);

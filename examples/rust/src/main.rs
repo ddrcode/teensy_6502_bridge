@@ -33,7 +33,7 @@ fn main() {
     };
 
     // reset the CPU
-    runner.reset();
+    // runner.reset();
 
     // step-through until BRK instruction
     while runner.step() {}

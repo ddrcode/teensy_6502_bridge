@@ -38,3 +38,5 @@
 # macos
 .DS_Store
 
+# tests
+tests/tests

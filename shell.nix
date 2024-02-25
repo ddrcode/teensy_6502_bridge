@@ -11,6 +11,7 @@ pkgs.mkShell {
     arduino-cli
     arduino-language-server
     cargo
+    # catch2_3
     rustc
     rustfmt
     cpplint

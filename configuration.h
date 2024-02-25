@@ -45,3 +45,5 @@
 constexpr bool SERIAL_ENABLED = true;
 constexpr bool ETHERNET_ENABLED = false;
 
+#define THROW_ERROR_IF_NOT_FAST
+

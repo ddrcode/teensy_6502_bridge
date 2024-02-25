@@ -14,7 +14,9 @@ impl<const SIZE: usize> Message<SIZE> {
     }
 
     pub fn from_bytes(bytes: &[u8]) -> Self {
+        println!("BYTES {:?}", bytes);
         let msg = Self::new(bytes[0], bytes[1..SIZE+1].try_into().expect("Invalid array size"));
+        println!("--- {}", msg);
         if msg.checksum() != bytes[SIZE+1] {
             panic!("Checksum error");
         }

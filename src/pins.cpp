@@ -27,10 +27,9 @@
    DEALINGS IN THE SOFTWARE.
 */
 
-#include <Arduino.h>
-#include <_Teensy.h>
 #include <cstdint>
 
+#include "hardware.hpp"
 #include "../configuration.h"
 #include "pins.hpp"
 

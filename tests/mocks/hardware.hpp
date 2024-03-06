@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stddef.h>
+
 typedef unsigned int uint;
 
 constexpr int LOW = 0;
@@ -20,5 +22,26 @@ typedef struct t_mocked_pin {
 } mocked_pin_t;
 
 
+class SerialClass {
+    private:
+        uint8_t buff[10];
+        uint8_t cursor;
+
+    public:
+        uint8_t read();
+        void write(uint8_t* buff, size_t size);
+        void send_now();
+
+        void _set_read_buff(uint8_t* buff, size_t size);
+        void _reset();
+
+        SerialClass();
+};
+
+extern SerialClass Serial;
+
+
 constexpr int MOCKED_PINS_SIZE = 42;
 extern mocked_pin_t mocked_pins[MOCKED_PINS_SIZE];
+
+void _reset_hardware_mocks();

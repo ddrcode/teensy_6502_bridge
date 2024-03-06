@@ -12,11 +12,34 @@ void _setup() {
     reset(pins);
 }
 
-void test_pins_to_msg() {
-    _setup();
-    assert(read_pin(pins.irq) == HIGH);
-    assert(read_pin(pins.reset) == HIGH);
+void _teardown() {
+    _reset_hardware_mocks();
+    Serial._reset();
+}
 
+void _run_test(void (* const test_fn)()) {
+    _setup();
+    test_fn();
+    _teardown();
+}
+
+void test_reset() {
+    reset(pins);
+    assert(read_pin(pins.reset) == HIGH);
+    assert(read_pin(pins.nmi) == HIGH);
+    assert(read_pin(pins.irq) == HIGH);
+    assert(read_pin(pins.so) == HIGH);
+    assert(read_pin(pins.be) == HIGH);
+    assert(read_pin(pins.ready) == HIGH);
+    assert(read_pin(pins.ml) == LOW);
+}
+
+void test_cpu_tick() {
+    uint8_t buff[] = {0, 0, 0, 0, 0, 0, 0};
+    Serial._set_read_buff(buff, 7);
+}
+
+void test_pins_to_msg() {
     uint8_t buff[5];
     get_pins_state(pin_ids, buff);
 
@@ -25,5 +48,6 @@ void test_pins_to_msg() {
 }
 
 void integration_tests_all() {
-    test_pins_to_msg();
+    void (* tests[])() = { test_reset, test_cpu_tick, test_pins_to_msg };
+    for (auto test: tests) _run_test(test);
 }

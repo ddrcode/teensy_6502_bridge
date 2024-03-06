@@ -1,8 +1,7 @@
-#include <Arduino.h>
-#include <_Teensy.h>
 #include <cstring>
 #include <cstdint>
 
+#include "hardware.hpp"
 #include "io.hpp"
 
 inline uint8_t read_byte();

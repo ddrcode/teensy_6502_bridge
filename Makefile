@@ -6,6 +6,7 @@ TEST_SRC += tests/mocks/*.cpp
 TEST_SRC += src/protocol.cpp
 TEST_SRC += src/pins.cpp
 TEST_SRC += src/cpu.cpp
+TEST_SRC += src/io.cpp
 
 build:
 	arduino-cli compile -b $(FQBN) .

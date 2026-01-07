@@ -8,6 +8,10 @@
 
 // #define DEBUG_TEENSY_BRIDGE
 
+// Uncomment to build bridge with on-board diagnostics firmware instead of
+// serial-controlled bridge loop.
+// #define ENABLE_DIAGNOSTICS
+
 // the clock (in ms) is required only for debug mode.
 // The bridge itself is being "clocked" by the COM port
 // messages and as such doesn't provide any notion of cycles.

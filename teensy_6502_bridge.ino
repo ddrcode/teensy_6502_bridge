@@ -41,6 +41,10 @@
     #include "src/debug.hpp"
 #endif
 
+#ifdef ENABLE_DIAGNOSTICS
+    #include "src/diagnostics.hpp"
+#endif
+
 uint8_t pin_ids[40];
 pins_t pins = setup_pins(pin_ids);
 uint8_t buff[7];
@@ -59,7 +63,9 @@ void loop()
         return;
     }
 
-#ifdef DEBUG_TEENSY_BRIDGE
+#if defined(ENABLE_DIAGNOSTICS)
+    loop_diagnostics(pins);
+#elif defined(DEBUG_TEENSY_BRIDGE)
     loop_debug(pins);
 #else
     loop_prod();

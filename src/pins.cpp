@@ -56,6 +56,22 @@ uint16_t get_val_from_pins(uint8_t addr_pins[], int len)
     return addr;
 }
 
+uint8_t read_data_bus(pins_t& pins)
+{
+    uint8_t value = 0;
+    for (int i = 0; i < 8; ++i) {
+        value |= read_pin(pins.data[i]) == HIGH ? (1 << i) : 0;
+    }
+    return value;
+}
+
+void write_data_bus(pins_t& pins, const uint8_t value)
+{
+    for (int i = 0; i < 8; ++i) {
+        digitalWriteFast(pins.data[i], (value & (1 << i)) ? HIGH : LOW);
+    }
+}
+
 void get_pins_state(uint8_t pin_ids[], uint8_t buff[BUFFSIZE])
 {
     for(int i=0; i<BUFFSIZE; ++i) {

@@ -41,4 +41,6 @@ void write_pin(const uint8_t pin_id, const int val);
 void write_pin(uint8_t pin_ids[], const uint8_t pin_id, const uint8_t buff[BUFFSIZE]);
 pins_t setup_pins(uint8_t pin_ids[]);
 uint16_t get_val_from_pins(uint8_t addr_pins[], int len);
+uint8_t read_data_bus(pins_t& pins);
+void write_data_bus(pins_t& pins, uint8_t value);
 

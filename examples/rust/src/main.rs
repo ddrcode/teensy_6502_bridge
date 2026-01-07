@@ -1,12 +1,14 @@
 mod configuration;
 mod pins;
-mod runner;
 mod protocol;
+mod runner;
 
 use configuration::{PORT_NAME, PROGRAM_FILE};
 use pins::Pins;
 use runner::{load_program, write_byte, Runner};
 use serialport;
+use std::io::Read;
+use std::process::Command;
 use std::time::Duration;
 
 fn main() {
@@ -36,5 +38,9 @@ fn main() {
     // runner.reset();
 
     // step-through until BRK instruction
-    while runner.step() {}
+    // runner.init();
+    while runner.step() {
+        let buffer = &mut [0u8];
+        std::io::stdin().read_exact(buffer).unwrap();
+    }
 }

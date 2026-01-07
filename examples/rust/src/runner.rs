@@ -1,10 +1,15 @@
 use crate::{
     configuration::{CYCLE_DURATION, SHOW_RAW_DATA},
     pins::Pins,
-    protocol::PinsMsg
+    protocol::PinsMsg,
 };
 use serialport::SerialPort;
-use std::{fs::File, io::{self, Read}, path::PathBuf, thread::sleep};
+use std::{
+    fs::File,
+    io::{self, Read},
+    path::PathBuf,
+    thread::sleep,
+};
 
 pub struct Runner {
     pub cycle: u64,
@@ -17,6 +22,9 @@ pub struct Runner {
 }
 
 impl Runner {
+    pub fn init(&mut self) {
+        self.read_port();
+    }
     /// It executes a single half-step (high or low clock signal) of the CPU.
     /// For every exection it sends data to CPU, adjusting the clock status (PHI2) first,
     /// and then it reads status back from the CPU.
@@ -61,6 +69,7 @@ impl Runner {
         pins.irq = true;
         pins.nmi = true;
         pins.so = false;
+        pins.reset = false;
 
         for _ in 0..4 {
             self.pins = pins.clone(); // Pins::from(pins);
@@ -103,7 +112,9 @@ impl Runner {
             // print_buff(&buff);
         }
         // self.port.write(&msg.to_vec()).expect("Write error to serial port");
-        self.port.write(&[0x02u8, 0x0a, 0x00, 0x00, 0x00, 0x28, 52]).expect("Write error to serial port");
+        self.port
+            .write(&[0x02u8, 0x0a, 0x00, 0x00, 0x00, 0x28, 52])
+            .expect("Write error to serial port");
     }
 
     /// Changes phase of the clock and advances the clock count.

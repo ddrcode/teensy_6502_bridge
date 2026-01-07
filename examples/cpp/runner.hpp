@@ -3,8 +3,6 @@
 #include "memory.hpp"
 #include "pins.hpp"
 
-#define BUFFSIZE 5
-
 class Runner
 {
 private:

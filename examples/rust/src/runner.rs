@@ -6,7 +6,7 @@ use crate::{
 use serialport::SerialPort;
 use std::{
     fs::File,
-    io::{self, Read},
+    io::{self, Read, Write},
     path::PathBuf,
     thread::sleep,
 };
@@ -22,8 +22,9 @@ pub struct Runner {
 }
 
 impl Runner {
-    pub fn init(&mut self) {
-        self.read_port();
+    pub fn run(&mut self) {
+        self.reset();
+        while self.step() {}
     }
     /// It executes a single half-step (high or low clock signal) of the CPU.
     /// For every exection it sends data to CPU, adjusting the clock status (PHI2) first,
@@ -72,7 +73,7 @@ impl Runner {
         pins.reset = false;
 
         for _ in 0..4 {
-            self.pins = pins.clone(); // Pins::from(pins);
+            self.pins = pins;
             self.pins.phi2 = self.phase;
             self.write_port();
 
@@ -88,14 +89,16 @@ impl Runner {
         self.pins.so = true;
     }
 
-    /// Reads 5-bytes buffer from the serial port and updates
-    /// `pins` field.
+    /// Reads 7-byte message from the serial port and updates `pins` field.
     fn read_port(&mut self) {
-        let mut buff: [u8; 7] = [0; 7];
+        let mut buff = [0u8; 7];
         self.port
-            .read(&mut buff)
+            .read_exact(&mut buff)
             .expect("Read error from serial port");
         let msg = PinsMsg::from_bytes(&buff[..]);
+        if msg.msg_code != 2 {
+            panic!("Unexpected message type: {}", msg.msg_code);
+        }
         if SHOW_RAW_DATA {
             println!("Reading: {}", msg);
             // print_buff(&buff);
@@ -105,15 +108,14 @@ impl Runner {
 
     /// Send the value of `pins` field into to serial port.
     fn write_port(&mut self) {
-        // let buff: [u8; 5] = self.pins.into();
-        let msg = PinsMsg::new(2, self.pins.into());
+        let payload: [u8; 5] = self.pins.into();
+        let msg = PinsMsg::new(2, payload);
         if SHOW_RAW_DATA {
             print!("Writing: {}", msg);
             // print_buff(&buff);
         }
-        // self.port.write(&msg.to_vec()).expect("Write error to serial port");
         self.port
-            .write(&[0x02u8, 0x0a, 0x00, 0x00, 0x00, 0x28, 52])
+            .write_all(&msg.to_vec())
             .expect("Write error to serial port");
     }
 

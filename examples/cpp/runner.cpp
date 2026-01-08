@@ -1,3 +1,6 @@
+#include <cerrno>
+#include <cstring>
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <unistd.h>
@@ -8,12 +11,72 @@
 #include "configuration.hpp"
 
 using std::cout;
+using std::cerr;
 using std::hex;
 using std::dec;
 using std::endl;
 using std::right;
 using std::setw;
 using std::setfill;
+
+namespace {
+
+constexpr uint8_t MESSAGE_TYPE_PINS = 2;
+constexpr size_t PAYLOAD_SIZE = 5;
+constexpr size_t MESSAGE_SIZE = PAYLOAD_SIZE + 2; // type + payload + checksum
+
+uint8_t compute_checksum(uint8_t type, const uint8_t* payload)
+{
+    uint8_t checksum = type;
+    for (size_t i = 0; i < PAYLOAD_SIZE; ++i) {
+        checksum = static_cast<uint8_t>(checksum + payload[i]);
+    }
+    return checksum;
+}
+
+void read_exact(int fd, uint8_t* buffer, size_t length)
+{
+    size_t offset = 0;
+    while (offset < length) {
+        ssize_t bytes = read(fd, buffer + offset, length - offset);
+        if (bytes > 0) {
+            offset += static_cast<size_t>(bytes);
+            continue;
+        }
+        if (bytes == 0) {
+            cerr << "Bridge disconnected while reading" << endl;
+            std::exit(1);
+        }
+        if (errno == EINTR) {
+            continue;
+        }
+        cerr << "Read error: " << std::strerror(errno) << endl;
+        std::exit(1);
+    }
+}
+
+void write_exact(int fd, const uint8_t* buffer, size_t length)
+{
+    size_t offset = 0;
+    while (offset < length) {
+        ssize_t bytes = write(fd, buffer + offset, length - offset);
+        if (bytes > 0) {
+            offset += static_cast<size_t>(bytes);
+            continue;
+        }
+        if (bytes == 0) {
+            cerr << "Bridge disconnected while writing" << endl;
+            std::exit(1);
+        }
+        if (errno == EINTR) {
+            continue;
+        }
+        cerr << "Write error: " << std::strerror(errno) << endl;
+        std::exit(1);
+    }
+}
+
+} // namespace
 
 Runner::Runner(int device, Memory *mem)
 {
@@ -110,18 +173,35 @@ void Runner::print_state()
 
 void Runner::read_serial()
 {
-    uint8_t buff[5];
-    for (int n=0; !n;) {
-        n = read(this->device, buff, BUFFSIZE);
+    uint8_t message[MESSAGE_SIZE];
+    read_exact(this->device, message, MESSAGE_SIZE);
+
+    if (message[0] != MESSAGE_TYPE_PINS) {
+        cerr << "Unexpected message type " << static_cast<int>(message[0]) << endl;
+        std::exit(1);
     }
-    this->pins.set_pins(buff);
+
+    const uint8_t checksum = compute_checksum(message[0], message + 1);
+    if (checksum != message[MESSAGE_SIZE - 1]) {
+        cerr << "Checksum mismatch: expected " << static_cast<int>(checksum)
+             << " got " << static_cast<int>(message[MESSAGE_SIZE - 1]) << endl;
+        std::exit(1);
+    }
+
+    this->pins.set_pins(message + 1);
 }
 
 void Runner::write_serial()
 {
-    uint8_t buff[5];
-    this->pins.set_buff(buff);
-    auto _ = write(this->device, buff, BUFFSIZE);
+    uint8_t payload[PAYLOAD_SIZE] = { 0 };
+    this->pins.set_buff(payload);
+
+    uint8_t message[MESSAGE_SIZE];
+    message[0] = MESSAGE_TYPE_PINS;
+    std::memcpy(message + 1, payload, PAYLOAD_SIZE);
+    message[MESSAGE_SIZE - 1] = compute_checksum(message[0], payload);
+
+    write_exact(this->device, message, MESSAGE_SIZE);
 }
 
 void Runner::advance_cycles()

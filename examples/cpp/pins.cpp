@@ -3,7 +3,8 @@
 
 W65C02Pins::W65C02Pins()
 {
-    this->set_pins(new uint8_t[5] {0,0,0,0,0});
+    uint8_t zeroed[5] = { 0, 0, 0, 0, 0 };
+    this->set_pins(zeroed);
 }
 
 W65C02Pins::W65C02Pins(uint8_t pins[5])

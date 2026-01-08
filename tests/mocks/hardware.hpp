@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <cstdint>
 
 typedef unsigned int uint;
 

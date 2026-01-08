@@ -20,6 +20,7 @@ other purpose too, i.e.:
 - C++ code for Teensy 4.1 that enables full control over W65C02 CPU via serial port.
 - [Examples](./examples/) (in C++ and Rust) demonstrating how to use the Bridge from a program running on a
   computer.
+- Host-side tooling plus unit/integration tests that exercise the serial protocol and pin-handling logic.
 - Explanation how to wire Teensy with W65C02 on a breadboard.
 - Complete [PCB design and schematics](./pcb/) (with some extra features).
 
@@ -154,13 +155,39 @@ correctness of your wiring, and double-check it before powering up your board.
 
 ### With Arduino CLI
 
-Follow [this post](https://forum.pjrc.com/index.php?threads/arduino-cli-and-ide-now-released-teensy-supported.53548/page-5#post-299430) to see how to configure Arduino CLI with Teensy.
+Follow [this
+post](https://forum.pjrc.com/index.php?threads/arduino-cli-and-ide-now-released-teensy-supported.53548/page-5#post-299430)
+to see how to configure Arduino CLI with Teensy, or do these steps (the third one is for Linux only):
+
+```
+arduino-cli config add board_manager.additional_urls https://www.pjrc.com/teensy/package_teensy_index.json
+arduino-cli core install teensy:avr
+wget https://www.pjrc.com/teensy/00-teensy.rules -P /etc/udev/rules.d
+```
 
 - to compile: `make build`
 - to upload `make upload`
 
-Make sure that the port name in `Makefile` is the correct one. To find the port name execute
-`arduino-cli board list`. You must have Teensy connected to your computer to have the port visible.
+`make upload` uses `teensy-loader-cli`, so the Teensy Loader application must be available on your PATH.
+
+### Running the host-side runners
+
+After flashing the firmware you can exercise the bridge directly from your workstation. Both host examples
+share the same CLI flags; at minimum you must provide the serial `--port` and the path to a 6502 binary via
+`--program`. When you invoke the Makefile targets, the `PROGRAM` variable defaults to `examples/test.p`, and you
+can point it somewhere else as needed.
+
+The Makefile exposes convenience targets that forward those flags for you:
+
+```bash
+PORT=/dev/ttyACM0 make run-cpp   # builds and runs the C++ host runner
+PORT=/dev/ttyACM0 make run-rust  # builds and runs the Rust host runner (cargo)
+PROGRAM=examples/other.bin PORT=/dev/ttyACM0 make run-cpp
+```
+
+Pass `--halfcycles` to either executable if you want to log both halves of the clock and show the PHI pins in the
+log output. Run `arduino-cli board list` whenever you need to confirm which `/dev/tty*` entry corresponds to the
+Teensy.
 
 ##### Install Arduino CLI and dependencies with Nix and Direnv
 
@@ -177,7 +204,7 @@ If you are not using Nix packages, then you don't know how much you miss in term
 
 There is complete example program in the [examples folder](./examples), that demonstrates
 how to execute 6502 binary with the bridge and RAM emulated on the host machine
-(not on Teensy). See the [Readme file](.examples/README.md) for details.
+(not on Teensy). See the [Readme file](./examples/README.md) for details.
 
 ## Data structure and message protocol
 

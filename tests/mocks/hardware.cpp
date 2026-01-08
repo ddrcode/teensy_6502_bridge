@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cstring>
+#include <cstdint>
 #include "hardware.hpp"
 
 mocked_pin_t mocked_pins[MOCKED_PINS_SIZE];

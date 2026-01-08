@@ -1,6 +1,13 @@
 # PCB
 
-This folder contains schematics, PCB files (Gerber) and list of components of 6502-Teensy Bridge.
+This folder contains everything you need to fab the optional Teensy↔W65C02 carrier board: schematics, rendered
+views, manufacturing files, and a bill of materials.
+
+## Folder contents
+
+- `schematics/` – source diagram plus a printable PNG
+- `gerber/` – ready-to-send fabrication outputs (ZIP all files and upload to your PCB house)
+- `assets/` – 3D/top/bottom previews for quick reference
 
 ## Schematics
 
@@ -15,6 +22,9 @@ This folder contains schematics, PCB files (Gerber) and list of components of 65
 ![Bottom view](assets/PCB_teensy-bridge-v1-bottom.png)
 
 ## BOM
+
+Populate only the components you care about: the mandatory list yields a minimal functional bridge, while the
+optional sections add Ethernet, LED diagnostics, or an SPI display header.
 
 ### Mandatory components
 

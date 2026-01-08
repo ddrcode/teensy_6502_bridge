@@ -19,6 +19,7 @@ pub struct Runner {
     pub addr: u16,
     pub write: bool,
     pub pins: Pins,
+    pub show_halfcycles: bool,
 }
 
 impl Runner {
@@ -52,9 +53,15 @@ impl Runner {
             if self.write {
                 write_byte(&mut self.mem, self.addr, self.pins.data);
             }
-            println!("[{}] {}", self.cycle, self.pins);
+            self.print_state();
             if self.pins.sync && self.pins.data == 0 && self.cycle > 20 {
                 return false;
+            }
+        }
+
+        if !self.phase {
+            if self.show_halfcycles {
+                self.print_state();
             }
         }
 
@@ -87,6 +94,34 @@ impl Runner {
         self.pins.reset = true;
         self.pins.ready = true;
         self.pins.so = true;
+    }
+
+    fn print_state(&self) {
+        let rw_char = if self.pins.rw { 'R' } else { 'W' };
+        let phase_char = if self.phase { 'H' } else { 'L' };
+        print!(
+            "Cycle={cycle:06} Half={phase} Addr=${addr:04X} Data=${data:02X} RW={rw} SYNC={sync} VP={vp} IRQ={irq} NMI={nmi} RES={res}",
+            cycle = self.cycle,
+            phase = phase_char,
+            addr = self.pins.addr,
+            data = self.pins.data,
+            rw = rw_char,
+            sync = u8::from(self.pins.sync),
+            vp = u8::from(self.pins.vp),
+            irq = u8::from(self.pins.irq),
+            nmi = u8::from(self.pins.nmi),
+            res = u8::from(self.pins.reset),
+        );
+
+        if self.show_halfcycles {
+            print!(
+                " PHI1O={} PHI2O={}",
+                u8::from(self.pins.phi1o),
+                u8::from(self.pins.phi2o)
+            );
+        }
+
+        println!();
     }
 
     /// Reads 7-byte message from the serial port and updates `pins` field.

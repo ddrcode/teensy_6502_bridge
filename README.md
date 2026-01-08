@@ -15,6 +15,8 @@ other purpose too, i.e.:
   video chip) remain emulated
   (something like [Neo 6502](https://www.olimex.com/Products/Retro-Computers/Neo6502/open-source-hardware)).
 
+![Example wiring](./assets/pcb.jpg)
+
 ## Content of this repo
 
 - C++ code for Teensy 4.1 that enables full control over W65C02 CPU via serial port.

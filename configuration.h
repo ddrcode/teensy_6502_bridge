@@ -6,14 +6,16 @@
 // Serial Monitor or screen).
 // This is handy in case of testing the correctness of your wiring.
 
-// #define DEBUG_TEENSY_COM_BRIDGE
+// #define DEBUG_TEENSY_BRIDGE
 
-#ifdef DEBUG_TEENSY_COM_BRIDGE
+// Uncomment to build bridge with on-board diagnostics firmware instead of
+// serial-controlled bridge loop.
+// #define ENABLE_DIAGNOSTICS
+
 // the clock (in ms) is required only for debug mode.
 // The bridge itself is being "clocked" by the COM port
 // messages and as such doesn't provide any notion of cycles.
 #define CYCLE_DURATION 500
-#endif
 
 // PIN CONFIGURATION
 // For each W65C02 PIN (as in the comments), provide Teensy 4.1 pin no.
@@ -43,3 +45,9 @@
   30,  /*     A9 <-- | 18*    *23 | --> A13   */     34, \
   31,  /*    A10 <-- | 19*    *22 | --> A12   */     33, \
   32,  /*    A11 <-- | 20*     21 | --> GND   */    255
+
+constexpr bool SERIAL_ENABLED = true;
+constexpr bool ETHERNET_ENABLED = false;
+
+#define THROW_ERROR_IF_NOT_FAST
+

@@ -1,9 +1,15 @@
 use crate::{
     configuration::{CYCLE_DURATION, SHOW_RAW_DATA},
     pins::Pins,
+    protocol::PinsMsg,
 };
 use serialport::SerialPort;
-use std::{fs::File, io::{self, Read}, path::PathBuf, thread::sleep};
+use std::{
+    fs::File,
+    io::{self, Read, Write},
+    path::PathBuf,
+    thread::sleep,
+};
 
 pub struct Runner {
     pub cycle: u64,
@@ -13,9 +19,14 @@ pub struct Runner {
     pub addr: u16,
     pub write: bool,
     pub pins: Pins,
+    pub show_halfcycles: bool,
 }
 
 impl Runner {
+    pub fn run(&mut self) {
+        self.reset();
+        while self.step() {}
+    }
     /// It executes a single half-step (high or low clock signal) of the CPU.
     /// For every exection it sends data to CPU, adjusting the clock status (PHI2) first,
     /// and then it reads status back from the CPU.
@@ -42,9 +53,15 @@ impl Runner {
             if self.write {
                 write_byte(&mut self.mem, self.addr, self.pins.data);
             }
-            println!("[{}] {}", self.cycle, self.pins);
+            self.print_state();
             if self.pins.sync && self.pins.data == 0 && self.cycle > 20 {
                 return false;
+            }
+        }
+
+        if !self.phase {
+            if self.show_halfcycles {
+                self.print_state();
             }
         }
 
@@ -60,9 +77,10 @@ impl Runner {
         pins.irq = true;
         pins.nmi = true;
         pins.so = false;
+        pins.reset = false;
 
         for _ in 0..4 {
-            self.pins = pins.clone(); // Pins::from(pins);
+            self.pins = pins;
             self.pins.phi2 = self.phase;
             self.write_port();
 
@@ -78,28 +96,62 @@ impl Runner {
         self.pins.so = true;
     }
 
-    /// Reads 5-bytes buffer from the serial port and updates
-    /// `pins` field.
-    fn read_port(&mut self) {
-        let mut buff: [u8; 5] = [0; 5];
-        self.port
-            .read(&mut buff)
-            .expect("Read error from serial port");
-        if SHOW_RAW_DATA {
-            print!("Reading: ");
-            print_buff(&buff);
+    fn print_state(&self) {
+        let rw_char = if self.pins.rw { 'R' } else { 'W' };
+        let phase_char = if self.phase { 'H' } else { 'L' };
+        print!(
+            "Cycle={cycle:06} Half={phase} Addr=${addr:04X} Data=${data:02X} RW={rw} SYNC={sync} VP={vp} IRQ={irq} NMI={nmi} RES={res}",
+            cycle = self.cycle,
+            phase = phase_char,
+            addr = self.pins.addr,
+            data = self.pins.data,
+            rw = rw_char,
+            sync = u8::from(self.pins.sync),
+            vp = u8::from(self.pins.vp),
+            irq = u8::from(self.pins.irq),
+            nmi = u8::from(self.pins.nmi),
+            res = u8::from(self.pins.reset),
+        );
+
+        if self.show_halfcycles {
+            print!(
+                " PHI1O={} PHI2O={}",
+                u8::from(self.pins.phi1o),
+                u8::from(self.pins.phi2o)
+            );
         }
-        self.pins = Pins::from(buff);
+
+        println!();
+    }
+
+    /// Reads 7-byte message from the serial port and updates `pins` field.
+    fn read_port(&mut self) {
+        let mut buff = [0u8; 7];
+        self.port
+            .read_exact(&mut buff)
+            .expect("Read error from serial port");
+        let msg = PinsMsg::from_bytes(&buff[..]);
+        if msg.msg_code != 2 {
+            panic!("Unexpected message type: {}", msg.msg_code);
+        }
+        if SHOW_RAW_DATA {
+            println!("Reading: {}", msg);
+            // print_buff(&buff);
+        }
+        self.pins = Pins::from(msg.data);
     }
 
     /// Send the value of `pins` field into to serial port.
     fn write_port(&mut self) {
-        let buff: [u8; 5] = self.pins.into();
+        let payload: [u8; 5] = self.pins.into();
+        let msg = PinsMsg::new(2, payload);
         if SHOW_RAW_DATA {
-            print!("Writing: ");
-            print_buff(&buff);
+            print!("Writing: {}", msg);
+            // print_buff(&buff);
         }
-        self.port.write(&buff).expect("Write error to serial port");
+        self.port
+            .write_all(&msg.to_vec())
+            .expect("Write error to serial port");
     }
 
     /// Changes phase of the clock and advances the clock count.

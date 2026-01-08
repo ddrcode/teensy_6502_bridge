@@ -15,11 +15,14 @@ other purpose too, i.e.:
   video chip) remain emulated
   (something like [Neo 6502](https://www.olimex.com/Products/Retro-Computers/Neo6502/open-source-hardware)).
 
+![Example wiring](./assets/pcb.jpg)
+
 ## Content of this repo
 
 - C++ code for Teensy 4.1 that enables full control over W65C02 CPU via serial port.
 - [Examples](./examples/) (in C++ and Rust) demonstrating how to use the Bridge from a program running on a
   computer.
+- Host-side tooling plus unit/integration tests that exercise the serial protocol and pin-handling logic.
 - Explanation how to wire Teensy with W65C02 on a breadboard.
 - Complete [PCB design and schematics](./pcb/) (with some extra features).
 
@@ -131,10 +134,11 @@ Additionally, there are some LEDs to indicate some of the signals.
 
 The schematic below illustrates the connectivity between Teensy and the CPU, but also
 provides some optional configuration:
+
 - reset button
 - indication LEDs
 - SPI connectivity with ILI9341 LCD.
-![Schematic](./pcb/schematics/teensy-bridge-v1.png)
+  ![Schematic](./pcb/schematics/teensy-bridge-v1.png)
 
 ### Warning
 
@@ -153,13 +157,39 @@ correctness of your wiring, and double-check it before powering up your board.
 
 ### With Arduino CLI
 
-Follow [this post](https://forum.pjrc.com/index.php?threads/arduino-cli-and-ide-now-released-teensy-supported.53548/page-5#post-299430) to see how to configure Arduino CLI with Teensy.
+Follow [this
+post](https://forum.pjrc.com/index.php?threads/arduino-cli-and-ide-now-released-teensy-supported.53548/page-5#post-299430)
+to see how to configure Arduino CLI with Teensy, or do these steps (the third one is for Linux only):
+
+```
+arduino-cli config add board_manager.additional_urls https://www.pjrc.com/teensy/package_teensy_index.json
+arduino-cli core install teensy:avr
+wget https://www.pjrc.com/teensy/00-teensy.rules -P /etc/udev/rules.d
+```
 
 - to compile: `make build`
 - to upload `make upload`
 
-Make sure that the port name in `Makefile` is the correct one. To find the port name execute
-`arduino-cli board list`. You must have Teensy connected to your computer to have the port visible.
+`make upload` uses `teensy-loader-cli`, so the Teensy Loader application must be available on your PATH.
+
+### Running the host-side runners
+
+After flashing the firmware you can exercise the bridge directly from your workstation. Both host examples
+share the same CLI flags; at minimum you must provide the serial `--port` and the path to a 6502 binary via
+`--program`. When you invoke the Makefile targets, the `PROGRAM` variable defaults to `examples/test.p`, and you
+can point it somewhere else as needed.
+
+The Makefile exposes convenience targets that forward those flags for you:
+
+```bash
+PORT=/dev/ttyACM0 make run-cpp   # builds and runs the C++ host runner
+PORT=/dev/ttyACM0 make run-rust  # builds and runs the Rust host runner (cargo)
+PROGRAM=examples/other.bin PORT=/dev/ttyACM0 make run-cpp
+```
+
+Pass `--halfcycles` to either executable if you want to log both halves of the clock and show the PHI pins in the
+log output. Run `arduino-cli board list` whenever you need to confirm which `/dev/tty*` entry corresponds to the
+Teensy.
 
 ##### Install Arduino CLI and dependencies with Nix and Direnv
 
@@ -176,7 +206,7 @@ If you are not using Nix packages, then you don't know how much you miss in term
 
 There is complete example program in the [examples folder](./examples), that demonstrates
 how to execute 6502 binary with the bridge and RAM emulated on the host machine
-(not on Teensy). See the [Readme file](.examples/README.md) for details.
+(not on Teensy). See the [Readme file](./examples/README.md) for details.
 
 ## Data structure and message protocol
 
@@ -185,15 +215,16 @@ Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 represent
 bit. In practice that number is being transferred via serial port as buffer of 5 bytes in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
 so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right), etc. The table below illustrates the exact structure of a message.
 
-| Byte | Bit 7  | Bit 6  | Bit 5  | Bit 4  | Bit 3  | Bit 2  | Bit 1  | Bit 0  |
-|----- | ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| 0    | Pin 40<br>`RES/` | Pin 39<br>`PHI2O`| Pin 38<br>`SO/` | Pin 37<br>`PHI2`| Pin 36<br>`BE`  | Pin 35<br>`NC`  | Pin 34<br>`RW/` | Pin 33<br>`D0`  |
-| 1    | Pin 32<br>`D1`   | Pin 31<br>`D2`   | Pin 30<br>`D3`  | Pin 29<br>`D4`  | Pin 28<br>`D5`  | Pin 27<br>`D6`  | Pin 26<br>`D7`  | Pin 25<br>`A15` |
-| 2    | Pin 24<br>`A14`  | Pin 23<br>`A13`  | Pin 22<br>`A12` | Pin 21<br>`VSS` | Pin 20<br>`A11` | Pin 19<br>`A10` | Pin 18<br>`A9`  | Pin 17<br>`A8`  |
-| 3    | Pin 16<br>`A7`   | Pin 15<br>`A6`   | Pin 14<br>`A5`  | Pin 13<br>`A4`  | Pin 12<br>`A3`  | Pin 11<br>`A2`  | Pin 10<br>`A1`  | Pin  9<br>`A0`  |
-| 4    | Pin  8<br>`VDD`  | Pin  7<br>`SYNC` | Pin  6<br>`NMI/`| Pin  5<br>`ML/` | Pin  4<br>`IRQ/`| Pin 3<br>`PHI1O`| Pin  2<br>`RDY` | Pin  1<br>`VP/` |
+| Byte | Bit 7            | Bit 6             | Bit 5            | Bit 4            | Bit 3            | Bit 2            | Bit 1           | Bit 0           |
+| ---- | ---------------- | ----------------- | ---------------- | ---------------- | ---------------- | ---------------- | --------------- | --------------- |
+| 0    | Pin 40<br>`RES/` | Pin 39<br>`PHI2O` | Pin 38<br>`SO/`  | Pin 37<br>`PHI2` | Pin 36<br>`BE`   | Pin 35<br>`NC`   | Pin 34<br>`RW/` | Pin 33<br>`D0`  |
+| 1    | Pin 32<br>`D1`   | Pin 31<br>`D2`    | Pin 30<br>`D3`   | Pin 29<br>`D4`   | Pin 28<br>`D5`   | Pin 27<br>`D6`   | Pin 26<br>`D7`  | Pin 25<br>`A15` |
+| 2    | Pin 24<br>`A14`  | Pin 23<br>`A13`   | Pin 22<br>`A12`  | Pin 21<br>`VSS`  | Pin 20<br>`A11`  | Pin 19<br>`A10`  | Pin 18<br>`A9`  | Pin 17<br>`A8`  |
+| 3    | Pin 16<br>`A7`   | Pin 15<br>`A6`    | Pin 14<br>`A5`   | Pin 13<br>`A4`   | Pin 12<br>`A3`   | Pin 11<br>`A2`   | Pin 10<br>`A1`  | Pin  9<br>`A0`  |
+| 4    | Pin  8<br>`VDD`  | Pin  7<br>`SYNC`  | Pin  6<br>`NMI/` | Pin  5<br>`ML/`  | Pin  4<br>`IRQ/` | Pin 3<br>`PHI1O` | Pin  2<br>`RDY` | Pin  1<br>`VP/` |
 
 ### Messaging order
+
 As the Teensy Bridge doesn't implement a clock, the communication must start on the host side - that means the host is responsible for
 sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every data package being sent from
 the host.
@@ -208,17 +239,16 @@ The 2nd half-cycle is a _memory cycle_, when the CPU writes or reads its data pi
 the typical interaction with the CPU, respecting both CPU phases.
 
 1. First half-cycle
-    1. Set `PHI2` pin to LOW (0)
-    2. Write buffer to serial port
-    3. Read buffer from serial port
-    4. Extract address and read/write state (pin 34) from the buffer
-2. Second half-cycle
-    1. Set `PHI2` pin to HIGH (1)
-    2. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
-    3. Write buffer to serial port
-    4. Read buffer from serial port
-    5. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.
-
+   1. Set `PHI2` pin to LOW (0)
+   1. Write buffer to serial port
+   1. Read buffer from serial port
+   1. Extract address and read/write state (pin 34) from the buffer
+1. Second half-cycle
+   1. Set `PHI2` pin to HIGH (1)
+   1. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
+   1. Write buffer to serial port
+   1. Read buffer from serial port
+   1. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.
 
 ## Working with other CPUs from the 6502 family
 

@@ -41,8 +41,12 @@ uint8_t get_pin(uint8_t pins[], uint8_t pin)
 void set_pin(uint8_t pins[], uint8_t pin, bool value)
 {
     int cell = (39-pin) / 8;
-    pins[cell] ^= value << (pin % 8);
-    pins[cell] ^= 1 << (pin % 8);
+    uint8_t mask = 1 << (pin % 8);
+    if (value) {
+        pins[cell] |= mask;
+    } else {
+        pins[cell] &= static_cast<uint8_t>(~mask);
+    }
 }
 
 string pins_to_string(uint8_t pins[])

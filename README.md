@@ -268,7 +268,9 @@ requiresd some changed in handling 24-bit address bus (there is already a
 This bridge may still work with some CPUs from the 6502 family, but some adjustments
 may need to be required, as the other processor may have different pin layout. Also,
 the minimum speed requirement may be a blocker here, due to limited speed of the bridge itself
-(see the section below).
+(see the section below). And finally - WDC family processors work perfectly under 3V, that matches
+Teensy 4.1 pins voltage. Other processors, like the original 6502/6510 may be 5V only.
+That would require further modifications. 
 
 ## Speed limitations
 

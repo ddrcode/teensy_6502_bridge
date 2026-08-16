@@ -172,6 +172,10 @@ wget https://www.pjrc.com/teensy/00-teensy.rules -P /etc/udev/rules.d
 
 `make upload` uses `teensy-loader-cli`, so the Teensy Loader application must be available on your PATH.
 
+On macOS `make upload` may fail with `Device is in use by "dummy" driver`, and the serial
+ports are named differently — see [Running the bridge on macOS](./docs/macos.md) for
+working upload options and other Darwin-specific details.
+
 ### Running the host-side runners
 
 After flashing the firmware you can exercise the bridge directly from your workstation. Both host examples
@@ -189,7 +193,7 @@ PROGRAM=examples/other.bin PORT=/dev/ttyACM0 make run-cpp
 
 Pass `--halfcycles` to either executable if you want to log both halves of the clock and show the PHI pins in the
 log output. Run `arduino-cli board list` whenever you need to confirm which `/dev/tty*` entry corresponds to the
-Teensy.
+Teensy (on macOS the port appears as `/dev/cu.usbmodem*` — see [docs/macos.md](./docs/macos.md)).
 
 ##### Install Arduino CLI and dependencies with Nix and Direnv
 
@@ -210,44 +214,72 @@ how to execute 6502 binary with the bridge and RAM emulated on the host machine
 
 ## Data structure and message protocol
 
-The communication "protocol" is very simple - every message sent to and going from serial port contains the status of all 40 CPU pins (one per bit).
-Imagine that the CPU pins representaion is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant
-bit. In practice that number is being transferred via serial port as buffer of 5 bytes in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
-so byte 0 contains the status of pins 40 to 33 (reading bits left-to-right), etc. The table below illustrates the exact structure of a message.
+The communication protocol is very simple - the host and the bridge exchange short, framed messages
+over the serial port. Every message has the same envelope:
 
-| Byte | Bit 7            | Bit 6             | Bit 5            | Bit 4            | Bit 3            | Bit 2            | Bit 1           | Bit 0           |
-| ---- | ---------------- | ----------------- | ---------------- | ---------------- | ---------------- | ---------------- | --------------- | --------------- |
-| 0    | Pin 40<br>`RES/` | Pin 39<br>`PHI2O` | Pin 38<br>`SO/`  | Pin 37<br>`PHI2` | Pin 36<br>`BE`   | Pin 35<br>`NC`   | Pin 34<br>`RW/` | Pin 33<br>`D0`  |
-| 1    | Pin 32<br>`D1`   | Pin 31<br>`D2`    | Pin 30<br>`D3`   | Pin 29<br>`D4`   | Pin 28<br>`D5`   | Pin 27<br>`D6`   | Pin 26<br>`D7`  | Pin 25<br>`A15` |
-| 2    | Pin 24<br>`A14`  | Pin 23<br>`A13`   | Pin 22<br>`A12`  | Pin 21<br>`VSS`  | Pin 20<br>`A11`  | Pin 19<br>`A10`  | Pin 18<br>`A9`  | Pin 17<br>`A8`  |
-| 3    | Pin 16<br>`A7`   | Pin 15<br>`A6`    | Pin 14<br>`A5`   | Pin 13<br>`A4`   | Pin 12<br>`A3`   | Pin 11<br>`A2`   | Pin 10<br>`A1`  | Pin  9<br>`A0`  |
-| 4    | Pin  8<br>`VDD`  | Pin  7<br>`SYNC`  | Pin  6<br>`NMI/` | Pin  5<br>`ML/`  | Pin  4<br>`IRQ/` | Pin 3<br>`PHI1O` | Pin  2<br>`RDY` | Pin  1<br>`VP/` |
+| Offset | Size | Field        | Description                                                          |
+| ------ | ---- | ------------ | -------------------------------------------------------------------- |
+| 0      | 1    | Message type | See the table below                                                  |
+| 1      | N    | Payload      | Size depends on the message type                                     |
+| N+1    | 1    | Checksum     | Sum of all preceding bytes (type + payload), wrapping around 8 bits  |
+
+### Message types
+
+| Type | Name   | Payload size | Total size | Description                                                      |
+| ---- | ------ | ------------ | ---------- | ---------------------------------------------------------------- |
+| 0    | Error  | 1            | 3          | Error code (reserved - the current firmware never sends it)      |
+| 1    | Status | 1            | 3          | Reserved for future use                                          |
+| 2    | Pins   | 5            | 7          | State of all 40 CPU pins - the only type exchanged in practice   |
+
+All communication today consists of pins messages (type 2) flowing in both directions: the host
+sends the desired state of the pins it controls, the bridge applies it, lets the CPU react, samples
+all 40 pins and responds with a single pins message containing the result.
+
+The current firmware doesn't validate the checksum of incoming messages, but host implementations
+should compute it correctly anyway (future firmware versions may start rejecting invalid messages),
+and should verify the checksum of every response - both example runners do.
+
+### Pins payload
+
+The payload of a pins message contains the status of all 40 CPU pins (one per bit).
+Imagine that the CPU pins representation is a 40-bit number, with Pin 1 representing the least significant bit (bit 0) and Pin 40 - the most significant
+bit. That number is transferred in [big-endian](https://en.wikipedia.org/wiki/Endianness) format,
+so payload byte 0 (message byte 1) contains the status of pins 40 to 33 (reading bits left-to-right), etc.
+The table below illustrates the exact structure of the payload.
+
+| Payload byte | Bit 7            | Bit 6             | Bit 5            | Bit 4            | Bit 3            | Bit 2            | Bit 1           | Bit 0           |
+| ------------ | ---------------- | ----------------- | ---------------- | ---------------- | ---------------- | ---------------- | --------------- | --------------- |
+| 0            | Pin 40<br>`RES/` | Pin 39<br>`PHI2O` | Pin 38<br>`SO/`  | Pin 37<br>`PHI2` | Pin 36<br>`BE`   | Pin 35<br>`NC`   | Pin 34<br>`RW/` | Pin 33<br>`D0`  |
+| 1            | Pin 32<br>`D1`   | Pin 31<br>`D2`    | Pin 30<br>`D3`   | Pin 29<br>`D4`   | Pin 28<br>`D5`   | Pin 27<br>`D6`   | Pin 26<br>`D7`  | Pin 25<br>`A15` |
+| 2            | Pin 24<br>`A14`  | Pin 23<br>`A13`   | Pin 22<br>`A12`  | Pin 21<br>`VSS`  | Pin 20<br>`A11`  | Pin 19<br>`A10`  | Pin 18<br>`A9`  | Pin 17<br>`A8`  |
+| 3            | Pin 16<br>`A7`   | Pin 15<br>`A6`    | Pin 14<br>`A5`   | Pin 13<br>`A4`   | Pin 12<br>`A3`   | Pin 11<br>`A2`   | Pin 10<br>`A1`  | Pin  9<br>`A0`  |
+| 4            | Pin  8<br>`VDD`  | Pin  7<br>`SYNC`  | Pin  6<br>`NMI/` | Pin  5<br>`ML/`  | Pin  4<br>`IRQ/` | Pin 3<br>`PHI1O` | Pin  2<br>`RDY` | Pin  1<br>`VP/` |
 
 ### Messaging order
 
 As the Teensy Bridge doesn't implement a clock, the communication must start on the host side - that means the host is responsible for
-sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every data package being sent from
+sending `PHI2` values (pin 37), and - in order to make the CPU to _tick_ - the value must be inverted for every pins message being sent from
 the host.
 
 Every write to the Teensy Bridge must be followed by a read, even if we are not planning to use the data from the Bridge
 (typical request-response approach).
-That can be understood as follows: every single half-cycle (the cpu phase), consist of write to serial port followed by a read.
-A full CPU cycle will consit of write-read-write-read operations, with pin 37 being set to 0 for the first time and 1 for second.
+That can be understood as follows: every single half-cycle (the cpu phase) consists of a write to serial port followed by a read.
+A full CPU cycle will consist of write-read-write-read operations, with pin 37 being set to 0 for the first time and 1 for second.
 
 When the CPU is in the first half-cycle, it executes internal operations, resulting in setting address bus and the `RW\` pin.
 The 2nd half-cycle is a _memory cycle_, when the CPU writes or reads its data pins. The algorithm below demonstrates the
-the typical interaction with the CPU, respecting both CPU phases.
+typical interaction with the CPU, respecting both CPU phases.
 
 1. First half-cycle
-   1. Set `PHI2` pin to LOW (0)
-   1. Write buffer to serial port
-   1. Read buffer from serial port
-   1. Extract address and read/write state (pin 34) from the buffer
+   1. Set `PHI2` pin to LOW (0) in the payload
+   1. Send a pins message to the serial port
+   1. Read the 7-byte response from the serial port
+   1. Extract address and read/write state (pin 34) from the response payload
 1. Second half-cycle
-   1. Set `PHI2` pin to HIGH (1)
+   1. Set `PHI2` pin to HIGH (1) in the payload
    1. In case of read operation (pin 34 is high) - read the value from the memory and set the data pins.
-   1. Write buffer to serial port
-   1. Read buffer from serial port
+   1. Send a pins message to the serial port
+   1. Read the 7-byte response from the serial port
    1. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.
 
 ## Working with other CPUs from the 6502 family

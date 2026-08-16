@@ -289,6 +289,11 @@ typical interaction with the CPU, respecting both CPU phases.
    1. Read the 7-byte response from the serial port
    1. In case of write operation (pin 34 was low in the first half-cycle) - read the value from data pins and save in the memory.
 
+Note that the bridge drives the CPU data pins only during the high clock phase of read cycles -
+like a real memory's output enable gated with `RW/` and `PHI2`. For the entire low phase (and for
+write cycles) the data bus is released, so the bus turnaround gap between transactions is
+physically real and observable on the bench.
+
 ## Working with other CPUs from the 6502 family
 
 This project is meant to work specifically with W65C02 CPU. The main reason

@@ -38,11 +38,19 @@ void test_reset() {
 
 void test_handle_cycle_sets_data_direction() {
     mocked_pins[pins.rw].val = HIGH;
+    mocked_pins[pins.phi2].val = HIGH;
     handle_cycle(pins);
     for (int i = 0; i < 8; ++i) {
-        assertm(mocked_pins[pins.data[i]].dir == OUTPUT, "Data bus should drive when RW is high");
+        assertm(mocked_pins[pins.data[i]].dir == OUTPUT, "Data bus should drive during the high phase of a read cycle");
     }
 
+    mocked_pins[pins.phi2].val = LOW;
+    handle_cycle(pins);
+    for (int i = 0; i < 8; ++i) {
+        assertm(mocked_pins[pins.data[i]].dir == INPUT, "Data bus must release during the low clock phase");
+    }
+
+    mocked_pins[pins.phi2].val = HIGH;
     mocked_pins[pins.rw].val = LOW;
     handle_cycle(pins);
     for (int i = 0; i < 8; ++i) {

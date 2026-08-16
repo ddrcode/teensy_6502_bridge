@@ -74,11 +74,13 @@ void test_set_pins_state_updates_control_lines() {
 }
 
 void test_pins_to_msg() {
+    mocked_pins[pins.vp].val = HIGH; // VP sits on Teensy pin 0 - a valid id
     uint8_t buff[5];
     get_pins_state(pin_ids, buff);
 
     assert(buff[0] & 128); // reset
     assert(buff[4] & 8); // IRQ
+    assertm(buff[4] & 1, "VP (Teensy pin 0) must be reported");
 }
 
 void integration_tests_all() {

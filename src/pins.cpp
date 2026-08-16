@@ -78,7 +78,7 @@ void get_pins_state(uint8_t pin_ids[], uint8_t buff[BUFFSIZE])
         buff[BUFFSIZE - i - 1] = 0;
         for(int j=0; j < 8; ++j) {
             auto id = pin_ids[i*8 + j];
-            if (id > 0) {
+            if (id != 255) { // 255 = not connected; 0 is a valid Teensy pin (VP)
                 buff[BUFFSIZE - i - 1] |= read_pin(id) == HIGH ? 1 << j : 0;
             }
         }

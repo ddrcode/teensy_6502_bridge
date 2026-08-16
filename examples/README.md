@@ -44,20 +44,25 @@ If you prefer to compile by hand, follow the steps below.
 ## Expected result
 
 If everything is connected correctly, the program should produce
-an output as showed below. It executes a tiny program, that adds two
+output like the one shown below. It executes a tiny program that adds two
 16-bit numbers together (see the [source](./test.asm)). Each line contains
-all relevant fields, so you can scroll freely without losing the column headers.
+all the relevant fields, so you can scroll freely without losing the column headers.
 
 ```text
-Cycle=000000 Half=H Addr=$FFFC Data=$00 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000001 Half=H Addr=$FFFD Data=$02 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000002 Half=H Addr=$0200 Data=$A0 RW=R SYNC=1 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000003 Half=H Addr=$0201 Data=$01 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000004 Half=H Addr=$0202 Data=$A9 RW=R SYNC=1 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000005 Half=H Addr=$0203 Data=$05 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000006 Half=H Addr=$0204 Data=$85 RW=R SYNC=1 VP=1 IRQ=1 NMI=1 RES=1
-Cycle=000007 Half=H Addr=$0205 Data=$10 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000009 Half=H Addr=$FFFC Data=$00 RW=R SYNC=0 VP=0 IRQ=1 NMI=1 RES=1
+Cycle=000010 Half=H Addr=$FFFD Data=$02 RW=R SYNC=0 VP=0 IRQ=1 NMI=1 RES=1
+Cycle=000011 Half=H Addr=$0200 Data=$A9 RW=R SYNC=1 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000012 Half=H Addr=$0201 Data=$03 RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000013 Half=H Addr=$0202 Data=$8D RW=R SYNC=1 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000014 Half=H Addr=$0203 Data=$FF RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000015 Half=H Addr=$0204 Data=$FF RW=R SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
+Cycle=000016 Half=H Addr=$FFFF Data=$03 RW=W SYNC=0 VP=1 IRQ=1 NMI=1 RES=1
 ```
+
+The first few logged cycles may differ from run to run - they show the CPU's internal reset
+sequence (dummy fetches and three stack accesses) before the reset vector is fetched from
+`$FFFC`/`$FFFD`, with the vector pull clearly visible as `VP=0`. From that point on the trace
+is fully deterministic.
 
 Running the tools with `--halfcycles` prints both halves of every cycle and appends
 `PHI1O`/`PHI2O` at the end of each line for deeper timing inspection.
@@ -69,3 +74,6 @@ Running the tools with `--halfcycles` prints both halves of every cycle and appe
 	the address and `RW/` state; the high phase either supplies memory data (reads) or stores results (writes).
 3. Every completed bus operation is logged as labeled key/value pairs, so you can follow execution without a logic
 	analyzer.
+
+For more details see the development guides for [C++](../docs/development-guide-cpp.md) and
+[Rust](../docs/development-guide-rust.md), and the [protocol specification](../docs/protocol.md).

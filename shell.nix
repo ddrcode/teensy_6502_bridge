@@ -3,30 +3,42 @@
 let
   inherit (pkgs.lib) optionals;
   inherit (pkgs.stdenv) isDarwin;
+  inherit (pkgs.stdenv) isLinux;
 in
 
 pkgs.mkShell {
   packages = with pkgs; [
     acme
-    # arduino-cli
+    arduino-cli
     arduino-language-server
-    cargo
+    
+    # Rust - use rustup to manage toolchains (handles cross-compilation targets)
+    # After entering the shell, run: rustup default stable
+    # For Teensy 4.1 firmware: rustup target add thumbv7em-none-eabihf
+    rustup
+    
+    # C++ tooling
     catch2_3
-    rustc
-    rustfmt
     cpplint
+    
+    # Formatting
     treefmt
     astyle
+    
+    # Build tools
     pkg-config
-    udev
-    teensyduino
-    teensy-udev-rules
     teensy-loader-cli
-    # python311Packages.mdit-py-plugins
-    # python311Packages.mdformat
-    # python311Packages.mdformat-gfm
   ] ++ optionals isDarwin [
     darwin.libiconv
-    darwin.IOKit
+    # darwin.IOKit
+  ] ++ optionals isLinux [
+    teensy-udev-rules
+    teensyduino
+    udev
   ];
+  
+  # Ensure rustup-managed toolchain takes precedence
+  shellHook = ''
+    export PATH="$HOME/.cargo/bin:$PATH"
+  '';
 }

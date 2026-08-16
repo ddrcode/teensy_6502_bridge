@@ -81,6 +81,11 @@ void reset(pins_t &pins)
 
 void handle_cycle(pins_t &pins)
 {
+    // Drive the data bus only during the high clock phase of a read cycle,
+    // like a memory's output enable gated with RW and PHI2. For the whole
+    // low phase (and for write cycles) the bus stays released, so the
+    // turnaround gap between transactions is physically real.
     auto rw = read_pin(pins.rw);
-    set_data_pins_mode(pins.data, rw == HIGH ? OUTPUT : INPUT);
+    auto phi2 = read_pin(pins.phi2);
+    set_data_pins_mode(pins.data, rw == HIGH && phi2 == HIGH ? OUTPUT : INPUT);
 }

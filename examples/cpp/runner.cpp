@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <unistd.h>
 
 #include "pins.hpp"
@@ -15,6 +16,7 @@ using std::cerr;
 
 namespace {
 
+constexpr uint8_t MESSAGE_TYPE_ERROR = 0;
 constexpr uint8_t MESSAGE_TYPE_PINS = 2;
 constexpr size_t PAYLOAD_SIZE = 5;
 constexpr size_t MESSAGE_SIZE = PAYLOAD_SIZE + 2; // type + payload + checksum
@@ -72,13 +74,15 @@ void write_exact(int fd, const uint8_t* buffer, size_t length)
 
 } // namespace
 
-Runner::Runner(int device, Memory *mem, bool log_halfcycles)
+Runner::Runner(int device, Memory *mem, bool log_halfcycles, bool step_mode)
 {
     this->device = device;
     this->mem = mem;
     this->phase = false;
     this->cycle = 0;
     this->log_halfcycles = log_halfcycles;
+    this->step_mode = step_mode;
+    this->steps_remaining = 0;
 }
 
 /**
@@ -100,7 +104,9 @@ void Runner::reset()
         this->pins.set_overflow = true;
         this->pins.phi2 = this->phase;
         this->write_serial();
-        usleep(CYCLE_DURATION);
+        if (CYCLE_DURATION > 0) {
+            usleep(CYCLE_DURATION);
+        }
         this->read_serial();
         this->advance_cycles();
     }
@@ -119,7 +125,9 @@ bool Runner::step()
 
     this->pins.phi2 = this->phase;
     this->write_serial();
-    usleep(CYCLE_DURATION);
+    if (CYCLE_DURATION > 0) {
+        usleep(CYCLE_DURATION);
+    }
 
     this->read_serial();
     if (!this->phase) {
@@ -130,6 +138,9 @@ bool Runner::step()
         }
         if (this->log_halfcycles) {
             this->print_state();
+            if (!this->maybe_pause()) {
+                return false;
+            }
         }
     } else {
         uint8_t data = this->pins.data;
@@ -138,6 +149,9 @@ bool Runner::step()
         }
         this->print_state();
         if (EXIT_ON_BRK && data == 0 && this->pins.sync) {
+            return false;
+        }
+        if (!this->maybe_pause()) {
             return false;
         }
     }
@@ -149,7 +163,51 @@ bool Runner::step()
 void Runner::run()
 {
     this->reset();
+    if (this->step_mode) {
+        std::cerr << "Step mode: Enter=next, <n>=run n, c=continue, q=quit" << std::endl;
+    }
     while (this->step());
+}
+
+/**
+ * In step mode, pauses execution after a logged cycle (or half-cycle, with
+ * --halfcycles) and waits for a command on stdin: Enter advances by one step,
+ * a number runs that many steps, 'c' switches back to free-running and 'q'
+ * (or EOF) quits. Returns false when the user wants to stop.
+ */
+bool Runner::maybe_pause()
+{
+    if (!this->step_mode) {
+        return true;
+    }
+    if (this->steps_remaining > 0) {
+        --this->steps_remaining;
+        return true;
+    }
+    std::string line;
+    while (true) {
+        cerr << "step> " << std::flush;
+        if (!std::getline(std::cin, line)) {
+            return false; // EOF - stop
+        }
+        if (line.empty()) {
+            return true;
+        }
+        if (line == "c") {
+            this->step_mode = false;
+            return true;
+        }
+        if (line == "q") {
+            return false;
+        }
+        char* end = nullptr;
+        unsigned long long n = std::strtoull(line.c_str(), &end, 10);
+        if (end != line.c_str() && *end == '\0' && n > 0) {
+            this->steps_remaining = n - 1;
+            return true;
+        }
+        cerr << "Enter=next, <n>=run n, c=continue, q=quit" << std::endl;
+    }
 }
 
 void Runner::print_state()
@@ -184,13 +242,25 @@ void Runner::print_state()
 
 void Runner::read_serial()
 {
-    uint8_t message[MESSAGE_SIZE];
-    read_exact(this->device, message, MESSAGE_SIZE);
+    uint8_t type;
+    read_exact(this->device, &type, 1);
 
-    if (message[0] != MESSAGE_TYPE_PINS) {
-        cerr << "Unexpected message type " << static_cast<int>(message[0]) << std::endl;
+    if (type == MESSAGE_TYPE_ERROR) {
+        uint8_t rest[2]; // error code + checksum
+        read_exact(this->device, rest, 2);
+        cerr << "Bridge rejected the message with error code "
+             << static_cast<int>(rest[0]) << std::endl;
         std::exit(1);
     }
+
+    if (type != MESSAGE_TYPE_PINS) {
+        cerr << "Unexpected message type " << static_cast<int>(type) << std::endl;
+        std::exit(1);
+    }
+
+    uint8_t message[MESSAGE_SIZE];
+    message[0] = type;
+    read_exact(this->device, message + 1, MESSAGE_SIZE - 1);
 
     const uint8_t checksum = compute_checksum(message[0], message + 1);
     if (checksum != message[MESSAGE_SIZE - 1]) {

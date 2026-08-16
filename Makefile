@@ -20,7 +20,7 @@ build:
 	arduino-cli compile -b $(FQBN) --build-path $(TARGET) .
 
 debug:
-	arduino-cli compile -b $(FQBN) --build-property "build.extra_flags=\"-DDEBUG_TEENSY_COM_BRIDGE\"" .
+	arduino-cli compile -b $(FQBN) --build-property "build.extra_flags=\"-DDEBUG_TEENSY_BRIDGE\"" .
 
 upload:
 	# arduino-cli upload -b $(FQBN) --port $(PORT) --build-path $(TARGET) .

@@ -17,12 +17,14 @@ struct CliOptions {
     std::string port;
     std::string program;
     bool show_halfcycles = false;
+    bool step_mode = false;
 };
 
 [[noreturn]] void print_usage(const char* prog)
 {
-    std::cerr << "Usage: " << prog << " --port <device> --program <file> [--halfcycles]" << std::endl;
+    std::cerr << "Usage: " << prog << " --port <device> --program <file> [--halfcycles] [--step]" << std::endl;
     std::cerr << "  --halfcycles    Log every half-cycle and include PHI pins" << std::endl;
+    std::cerr << "  --step          Step mode: pause after every cycle and wait for input" << std::endl;
     exit(1);
 }
 
@@ -81,6 +83,8 @@ CliOptions parse_cli(int argc, char* argv[])
             options.program = require_value(arg);
         } else if (arg == "--halfcycles") {
             options.show_halfcycles = true;
+        } else if (arg == "--step") {
+            options.step_mode = true;
         } else if (arg == "-h" || arg == "--help") {
             print_usage(argv[0]);
         } else {
@@ -120,7 +124,7 @@ int main(int argc, char *argv[])
     }
 
     // execute program on connected CPU with emulated RAM
-    Runner runner = Runner(device, &mem, options.show_halfcycles);
+    Runner runner = Runner(device, &mem, options.show_halfcycles, options.step_mode);
     runner.run();
 
     close(device);

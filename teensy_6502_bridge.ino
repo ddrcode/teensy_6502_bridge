@@ -74,41 +74,24 @@ void loop()
 
 void loop_prod()
 {
-    // static int idx = 0;
-    // static message_t msg = {
-    //     .size = 5
-    // };
+    message_t msg;
+    if (!try_read_msg(&msg)) return;
 
-    if (!Serial.available()) return;
+    if (msg.type != MSG_PINS) {
+        send_error(ERR_INVALID_MSG_TYPE);
+        return;
+    }
 
-    message_t msg = read_msg();
-
-    // int byte = Serial.read();
-    // buff[idx++] = byte;
-    //
-    // if (idx < 7) return;
-    // idx = 0;
-    //
-    // msg.type = buff[0];
-    // for(int i=0; i<5; ++i) {
-    //     msg.data[i] = buff[i+1];
-    // }
-    // msg.checksum = buff[6];
+    if (!validate_checksum(&msg)) {
+        send_error(ERR_INVALID_CHECKSUM);
+        return;
+    }
 
     set_pins_state(pin_ids, pins, msg.data);
     handle_cycle(pins);
     get_pins_state(pin_ids, msg.data);
-    // write_msg(&msg);
     msg.checksum = compute_checksum(&msg);
     msg_to_buff(&msg, buff);
     Serial.write(buff, 7);
     Serial.send_now();
-
-    // set_pins_state(pin_ids, pins, buff+1);
-    // handle_cycle(pins);
-    // get_pins_state(pin_ids, buff+1);
-    // msg_pins_t msg = create_pins_msg(buff+1);
-    // Serial.write((uint8_t*)&msg, sizeof(msg));
-    // // Serial.write(buff, 5);
-    // Serial.send_now();
 }

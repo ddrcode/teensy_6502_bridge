@@ -195,7 +195,9 @@ PROGRAM=examples/other.bin PORT=/dev/ttyACM0 make run-cpp
 ```
 
 Pass `--halfcycles` to either executable if you want to log both halves of the clock and show the PHI pins in the
-log output. Run `arduino-cli board list` whenever you need to confirm which `/dev/tty*` entry corresponds to the
+log output. Pass `--step` to execute cycle by cycle: the runner pauses after every cycle with the CPU frozen
+(ideal for watching the indication LEDs) and advances on Enter - see the
+[examples Readme](./examples/README.md) for the full list of step commands. Run `arduino-cli board list` whenever you need to confirm which `/dev/tty*` entry corresponds to the
 Teensy (on macOS the port appears as `/dev/cu.usbmodem*` — see [docs/macos.md](./docs/macos.md)).
 
 ##### Install Arduino CLI and dependencies with Nix and Direnv

@@ -20,11 +20,16 @@ pub struct Runner {
     pub write: bool,
     pub pins: Pins,
     pub show_halfcycles: bool,
+    pub step_mode: bool,
+    pub steps_remaining: u64,
 }
 
 impl Runner {
     pub fn run(&mut self) {
         self.reset();
+        if self.step_mode {
+            eprintln!("Step mode: Enter=next, <n>=run n, c=continue, q=quit");
+        }
         while self.step() {}
     }
     /// It executes a single half-step (high or low clock signal) of the CPU.
@@ -59,16 +64,61 @@ impl Runner {
             if self.pins.sync && self.pins.data == 0 && self.cycle > 20 {
                 return false;
             }
+            if !self.maybe_pause() {
+                return false;
+            }
         }
 
         if !self.phase {
             if self.show_halfcycles {
                 self.print_state();
+                if !self.maybe_pause() {
+                    return false;
+                }
             }
         }
 
         self.advance_cycles();
         true
+    }
+
+    /// In step mode, pauses execution after a logged cycle (or half-cycle,
+    /// with `--halfcycles`) and waits for a command on stdin:
+    /// Enter advances by one step, a number runs that many steps,
+    /// `c` switches back to free-running, `q` (or EOF) quits.
+    /// Returns false when the user wants to stop.
+    fn maybe_pause(&mut self) -> bool {
+        if !self.step_mode {
+            return true;
+        }
+        if self.steps_remaining > 0 {
+            self.steps_remaining -= 1;
+            return true;
+        }
+        loop {
+            eprint!("step> ");
+            let _ = io::stderr().flush();
+            let mut line = String::new();
+            match io::stdin().read_line(&mut line) {
+                Ok(0) | Err(_) => return false, // EOF - stop
+                Ok(_) => {}
+            }
+            match line.trim() {
+                "" => return true,
+                "c" => {
+                    self.step_mode = false;
+                    return true;
+                }
+                "q" => return false,
+                s => match s.parse::<u64>() {
+                    Ok(n) if n > 0 => {
+                        self.steps_remaining = n - 1;
+                        return true;
+                    }
+                    _ => eprintln!("Enter=next, <n>=run n, c=continue, q=quit"),
+                },
+            }
+        }
     }
 
     /// Resets the CPU, by holding RESB signal (pin 40) low for two cycles (4 half-cycles).

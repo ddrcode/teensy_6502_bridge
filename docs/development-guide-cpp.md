@@ -85,8 +85,12 @@ The C++ runner executes a 6502 binary on the real CPU while emulating 64 kB of R
 make build-cpp-example
 PORT=/dev/ttyACM0 make run-cpp
 # or manually:
-./examples/cpp/example.out --port /dev/ttyACM0 --program examples/test.p [--halfcycles]
+./examples/cpp/example.out --port /dev/ttyACM0 --program examples/test.p [--halfcycles] [--step]
 ```
+
+`--step` pauses after every logged cycle with the CPU frozen (the W65C02 is fully static, so it
+simply holds its state) and waits for a command on stdin: `Enter` advances one step, a number runs
+that many steps, `c` switches back to free-running, `q` quits.
 
 ### Configuration knobs (`configuration.hpp`)
 

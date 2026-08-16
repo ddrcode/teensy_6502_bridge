@@ -25,6 +25,12 @@ PROGRAM=examples/custom.bin PORT=/dev/ttyACM0 make run-cpp
 `--halfcycles` to either command when you want to observe both halves of every cycle and include the `PHI1O/PHI2O`
 signals in the log.
 
+Append `--step` to execute the program cycle by cycle: the runner pauses after every logged cycle
+(with the CPU frozen and its pins holding the printed state - ideal for watching the indication
+LEDs), and waits for a command: `Enter` advances one cycle, a number runs that many cycles,
+`c` switches back to free-running and `q` quits. Combined with `--halfcycles` it steps through
+individual half-cycles.
+
 ## Manual compilation
 
 If you prefer to compile by hand, follow the steps below.

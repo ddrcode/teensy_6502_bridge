@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <unistd.h>
 
 #include "pins.hpp"
@@ -73,13 +74,15 @@ void write_exact(int fd, const uint8_t* buffer, size_t length)
 
 } // namespace
 
-Runner::Runner(int device, Memory *mem, bool log_halfcycles)
+Runner::Runner(int device, Memory *mem, bool log_halfcycles, bool step_mode)
 {
     this->device = device;
     this->mem = mem;
     this->phase = false;
     this->cycle = 0;
     this->log_halfcycles = log_halfcycles;
+    this->step_mode = step_mode;
+    this->steps_remaining = 0;
 }
 
 /**
@@ -135,6 +138,9 @@ bool Runner::step()
         }
         if (this->log_halfcycles) {
             this->print_state();
+            if (!this->maybe_pause()) {
+                return false;
+            }
         }
     } else {
         uint8_t data = this->pins.data;
@@ -143,6 +149,9 @@ bool Runner::step()
         }
         this->print_state();
         if (EXIT_ON_BRK && data == 0 && this->pins.sync) {
+            return false;
+        }
+        if (!this->maybe_pause()) {
             return false;
         }
     }
@@ -154,7 +163,51 @@ bool Runner::step()
 void Runner::run()
 {
     this->reset();
+    if (this->step_mode) {
+        std::cerr << "Step mode: Enter=next, <n>=run n, c=continue, q=quit" << std::endl;
+    }
     while (this->step());
+}
+
+/**
+ * In step mode, pauses execution after a logged cycle (or half-cycle, with
+ * --halfcycles) and waits for a command on stdin: Enter advances by one step,
+ * a number runs that many steps, 'c' switches back to free-running and 'q'
+ * (or EOF) quits. Returns false when the user wants to stop.
+ */
+bool Runner::maybe_pause()
+{
+    if (!this->step_mode) {
+        return true;
+    }
+    if (this->steps_remaining > 0) {
+        --this->steps_remaining;
+        return true;
+    }
+    std::string line;
+    while (true) {
+        cerr << "step> " << std::flush;
+        if (!std::getline(std::cin, line)) {
+            return false; // EOF - stop
+        }
+        if (line.empty()) {
+            return true;
+        }
+        if (line == "c") {
+            this->step_mode = false;
+            return true;
+        }
+        if (line == "q") {
+            return false;
+        }
+        char* end = nullptr;
+        unsigned long long n = std::strtoull(line.c_str(), &end, 10);
+        if (end != line.c_str() && *end == '\0' && n > 0) {
+            this->steps_remaining = n - 1;
+            return true;
+        }
+        cerr << "Enter=next, <n>=run n, c=continue, q=quit" << std::endl;
+    }
 }
 
 void Runner::print_state()

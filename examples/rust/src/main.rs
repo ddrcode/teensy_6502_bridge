@@ -20,6 +20,9 @@ struct Cli {
 
     #[arg(long, help = "Log every half-cycle and include PHI pins")]
     halfcycles: bool,
+
+    #[arg(long, help = "Step mode: pause after every cycle and wait for input")]
+    step: bool,
 }
 
 fn main() {
@@ -50,6 +53,8 @@ fn main() {
         write: false,
         pins: Pins::default(),
         show_halfcycles: args.halfcycles,
+        step_mode: args.step,
+        steps_remaining: 0,
     };
 
     runner.run();

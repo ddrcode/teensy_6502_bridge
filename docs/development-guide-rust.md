@@ -36,6 +36,10 @@ CLI flags:
 - `--program` / `-f` - path to a plain 6502 binary; it is loaded at `$0200` and the reset, IRQ and
   NMI vectors are seeded automatically.
 - `--halfcycles` - log both halves of every clock cycle and include the `PHI1O`/`PHI2O` pins.
+- `--step` - step mode: pause after every logged cycle (or half-cycle, with `--halfcycles`) with the
+  CPU frozen, and wait for a command on stdin: `Enter` advances one step, a number runs that many
+  steps, `c` switches back to free-running, `q` quits. As the W65C02 is fully static, the CPU simply
+  holds its state while paused - handy for inspecting board LEDs or probing signals.
 
 ## Configuration knobs (`src/configuration.rs`)
 

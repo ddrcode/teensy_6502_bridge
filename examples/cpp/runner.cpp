@@ -101,7 +101,9 @@ void Runner::reset()
         this->pins.set_overflow = true;
         this->pins.phi2 = this->phase;
         this->write_serial();
-        usleep(CYCLE_DURATION);
+        if (CYCLE_DURATION > 0) {
+            usleep(CYCLE_DURATION);
+        }
         this->read_serial();
         this->advance_cycles();
     }
@@ -120,7 +122,9 @@ bool Runner::step()
 
     this->pins.phi2 = this->phase;
     this->write_serial();
-    usleep(CYCLE_DURATION);
+    if (CYCLE_DURATION > 0) {
+        usleep(CYCLE_DURATION);
+    }
 
     this->read_serial();
     if (!this->phase) {

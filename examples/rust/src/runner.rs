@@ -40,7 +40,9 @@ impl Runner {
         self.pins.phi2 = self.phase;
         self.write_port();
 
-        sleep(CYCLE_DURATION);
+        if !CYCLE_DURATION.is_zero() {
+            sleep(CYCLE_DURATION);
+        }
         self.read_port();
 
         if !self.phase {
@@ -84,7 +86,9 @@ impl Runner {
             self.pins.phi2 = self.phase;
             self.write_port();
 
-            sleep(CYCLE_DURATION);
+            if !CYCLE_DURATION.is_zero() {
+                sleep(CYCLE_DURATION);
+            }
             self.read_port();
             self.advance_cycles();
         }

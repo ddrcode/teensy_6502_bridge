@@ -124,21 +124,38 @@ impl Runner {
         println!();
     }
 
-    /// Reads 7-byte message from the serial port and updates `pins` field.
+    /// Reads a message from the serial port and updates `pins` field.
+    /// The bridge responds either with a 7-byte pins message (type 2),
+    /// or with a 3-byte error message (type 0) when it rejects a request.
     fn read_port(&mut self) {
-        let mut buff = [0u8; 7];
+        let mut header = [0u8; 1];
         self.port
-            .read_exact(&mut buff)
+            .read_exact(&mut header)
             .expect("Read error from serial port");
-        let msg = PinsMsg::from_bytes(&buff[..]);
-        if msg.msg_code != 2 {
-            panic!("Unexpected message type: {}", msg.msg_code);
+
+        match header[0] {
+            0 => {
+                let mut rest = [0u8; 2]; // error code + checksum
+                self.port
+                    .read_exact(&mut rest)
+                    .expect("Read error from serial port");
+                panic!("Bridge rejected the message with error code {}", rest[0]);
+            }
+            2 => {
+                let mut buff = [0u8; 7];
+                buff[0] = header[0];
+                self.port
+                    .read_exact(&mut buff[1..])
+                    .expect("Read error from serial port");
+                let msg = PinsMsg::from_bytes(&buff[..]);
+                if SHOW_RAW_DATA {
+                    println!("Reading: {}", msg);
+                    // print_buff(&buff);
+                }
+                self.pins = Pins::from(msg.data);
+            }
+            t => panic!("Unexpected message type: {}", t),
         }
-        if SHOW_RAW_DATA {
-            println!("Reading: {}", msg);
-            // print_buff(&buff);
-        }
-        self.pins = Pins::from(msg.data);
     }
 
     /// Send the value of `pins` field into to serial port.

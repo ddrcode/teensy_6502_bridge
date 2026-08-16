@@ -15,6 +15,7 @@ using std::cerr;
 
 namespace {
 
+constexpr uint8_t MESSAGE_TYPE_ERROR = 0;
 constexpr uint8_t MESSAGE_TYPE_PINS = 2;
 constexpr size_t PAYLOAD_SIZE = 5;
 constexpr size_t MESSAGE_SIZE = PAYLOAD_SIZE + 2; // type + payload + checksum
@@ -184,13 +185,25 @@ void Runner::print_state()
 
 void Runner::read_serial()
 {
-    uint8_t message[MESSAGE_SIZE];
-    read_exact(this->device, message, MESSAGE_SIZE);
+    uint8_t type;
+    read_exact(this->device, &type, 1);
 
-    if (message[0] != MESSAGE_TYPE_PINS) {
-        cerr << "Unexpected message type " << static_cast<int>(message[0]) << std::endl;
+    if (type == MESSAGE_TYPE_ERROR) {
+        uint8_t rest[2]; // error code + checksum
+        read_exact(this->device, rest, 2);
+        cerr << "Bridge rejected the message with error code "
+             << static_cast<int>(rest[0]) << std::endl;
         std::exit(1);
     }
+
+    if (type != MESSAGE_TYPE_PINS) {
+        cerr << "Unexpected message type " << static_cast<int>(type) << std::endl;
+        std::exit(1);
+    }
+
+    uint8_t message[MESSAGE_SIZE];
+    message[0] = type;
+    read_exact(this->device, message + 1, MESSAGE_SIZE - 1);
 
     const uint8_t checksum = compute_checksum(message[0], message + 1);
     if (checksum != message[MESSAGE_SIZE - 1]) {

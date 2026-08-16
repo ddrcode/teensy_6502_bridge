@@ -225,19 +225,26 @@ over the serial port. Every message has the same envelope:
 
 ### Message types
 
-| Type | Name   | Payload size | Total size | Description                                                      |
-| ---- | ------ | ------------ | ---------- | ---------------------------------------------------------------- |
-| 0    | Error  | 1            | 3          | Error code (reserved - the current firmware never sends it)      |
-| 1    | Status | 1            | 3          | Reserved for future use                                          |
-| 2    | Pins   | 5            | 7          | State of all 40 CPU pins - the only type exchanged in practice   |
+| Type | Name   | Payload size | Total size | Description                                                       |
+| ---- | ------ | ------------ | ---------- | ----------------------------------------------------------------- |
+| 0    | Error  | 1            | 3          | Error code - sent by the bridge when it rejects a message         |
+| 1    | Status | 1            | 3          | Reserved for future use                                           |
+| 2    | Pins   | 5            | 7          | State of all 40 CPU pins - the only type the host may send        |
 
-All communication today consists of pins messages (type 2) flowing in both directions: the host
-sends the desired state of the pins it controls, the bridge applies it, lets the CPU react, samples
-all 40 pins and responds with a single pins message containing the result.
+In normal operation the communication consists of pins messages (type 2) flowing in both directions:
+the host sends the desired state of the pins it controls, the bridge applies it, lets the CPU react,
+samples all 40 pins and responds with a single pins message containing the result.
 
-The current firmware doesn't validate the checksum of incoming messages, but host implementations
-should compute it correctly anyway (future firmware versions may start rejecting invalid messages),
-and should verify the checksum of every response - both example runners do.
+The bridge validates every incoming message. When the message type is not a pins message, or the
+checksum doesn't match, the bridge leaves the CPU pins untouched and responds with a 3-byte error
+message instead of a pins message. Host implementations should therefore read the type byte of a
+response first, and only then the rest of it (both example runners do), and should verify the
+checksum of every pins response.
+
+| Error code | Meaning                                                             |
+| ---------- | ------------------------------------------------------------------- |
+| 1          | Invalid message type - the bridge accepts pins messages (2) only    |
+| 2          | Checksum mismatch                                                    |
 
 ### Pins payload
 

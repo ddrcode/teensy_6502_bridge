@@ -5,6 +5,7 @@
 int main() {
     _reset_hardware_mocks();
     protocol_tests_all();
+    io_tests_all();
     integration_tests_all();
     std::cout << "All OK" << std::endl;
     return 0;

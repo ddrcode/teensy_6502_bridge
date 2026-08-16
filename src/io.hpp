@@ -3,6 +3,5 @@
 #include "protocol.hpp"
 
 
-message_t read_msg();
-void write_msg(const message_t * const msg);
-
+bool try_read_msg(message_t* msg);
+void send_error(const uint8_t code);

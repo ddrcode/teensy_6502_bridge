@@ -28,6 +28,12 @@ typedef enum t_msg_type
     MSG_INVALID = 255
 } msg_type;
 
+typedef enum t_error_code
+{
+    ERR_INVALID_MSG_TYPE = 1,
+    ERR_INVALID_CHECKSUM = 2
+} error_code;
+
 msg_pins_t create_pins_msg(uint8_t data[5]);
 msg_error_t create_error_msg(uint8_t code);
 uint8_t get_msg_size(const uint8_t msg_type);

@@ -45,6 +45,10 @@
     #include "src/diagnostics.hpp"
 #endif
 
+#ifdef ENABLE_DISPLAY
+    #include "src/display.hpp"
+#endif
+
 uint8_t pin_ids[40];
 pins_t pins = setup_pins(pin_ids);
 uint8_t buff[7];
@@ -54,12 +58,18 @@ void setup()
     Serial.begin(8388608); // value ignored on Teensy for USB connection
     setup_cpu(pins);
     reset(pins);
+#ifdef ENABLE_DISPLAY
+    display_setup();
+#endif
 }
 
 void loop()
 {
-    // do nothihng until serial connected
+    // do nothing until serial connected
     if (!Serial.dtr()) {
+#ifdef ENABLE_DISPLAY
+        display_idle();
+#endif
         return;
     }
 
@@ -69,6 +79,10 @@ void loop()
     loop_debug(pins);
 #else
     loop_prod();
+#endif
+
+#ifdef ENABLE_DISPLAY
+    display_refresh();
 #endif
 }
 
@@ -94,4 +108,8 @@ void loop_prod()
     msg_to_buff(&msg, buff);
     Serial.write(buff, 7);
     Serial.send_now();
+
+#ifdef ENABLE_DISPLAY
+    display_capture(msg.data);
+#endif
 }

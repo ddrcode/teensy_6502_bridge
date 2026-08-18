@@ -6,5 +6,6 @@
 
 void protocol_tests_all();
 void io_tests_all();
+void display_tests_all();
 void integration_tests_all();
 

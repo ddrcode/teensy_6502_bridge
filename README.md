@@ -79,7 +79,11 @@ To adjust the pin mapping, modify the `PINS_MAP` macro definition in the
 
 The pin assignment is organized so that it leaves one SPI interface
 available (pins 1, 10, 26 and 27), which can be used for an additional device (e.g. the [PCB](./pcb/)
-gives the option to connect an ILI9341 screen).
+gives the option to connect an ILI9341 screen). The firmware can drive that screen as an optional
+live front panel (logic analyzer, address/data readouts, clock rate) - see the
+[C++ development guide](./docs/development-guide-cpp.md#optional-ili9341-display).
+
+![Live front panel](./assets/display-analyzer.jpg)
 
 | Teensy pin | CPU pin | CPU pin name | ←  → | CPU Pin name  | CPU pin | Teensy pin |
 | ---------- | ------- | ------------ | ---- | ------------- | ------- | ---------- |

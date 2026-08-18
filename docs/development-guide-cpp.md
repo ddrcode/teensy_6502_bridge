@@ -46,6 +46,37 @@ The mode is selected at compile time in `configuration.h` (or via compiler flags
   with nothing but a serial monitor.
 - **Diagnostics** (`#define ENABLE_DIAGNOSTICS`) - on-board diagnostics firmware.
 
+Note: the Teensy Arduino core ignores defines injected from the command line, so all of these
+switches must be edited in `configuration.h` before running `make build`.
+
+### Optional ILI9341 display
+
+`#define ENABLE_DISPLAY` in `configuration.h` turns the PCB's LCD header into a live front panel
+(`src/display.{hpp,cpp}`). It requires the Adafruit display libraries:
+
+```bash
+arduino-cli lib install "Adafruit ILI9341" "Adafruit GFX Library" "Adafruit BusIO"
+```
+
+The wiring matches PCB v1 and needs no configuration: the screen sits on SPI1 (MOSI=26, SCK=27),
+D/C on pin 10, with CS tied to ground and RST pulled high on the board. The panel shows:
+
+- a header with the current address/data (hex), a read/write indicator, and per-signal
+  "asserted" chips (active-low signals light up when low);
+- a sweeping 8-lane logic analyzer (PHI2, SYNC, RW, VP, ML, IRQ, NMI, RES) with one column per
+  half-cycle, fed from the same 5-byte payload the serial protocol uses;
+- a footer with the last opcode fetch (`SYNC` address + opcode), a cycle counter (reset by `RES`)
+  and the measured effective clock rate (`HOLD` when the host pauses, e.g. in `--step` mode).
+
+![The front panel in action](../assets/display-analyzer.jpg)
+
+Refreshing is rate-limited (`DISPLAY_REFRESH_MS`) and draws only changed regions (in free-run the
+expensive text readouts update just once per second, since they are a blur at speed anyway), but it
+still costs roughly 15% of free-run throughput; while stepping or idle it costs nothing. The firmware is
+harmless with no screen attached, and before a host connects it shows a splash screen (with a cat).
+
+![Splash screen](../assets/display-splash.jpg)
+
 ### Tests
 
 The firmware logic is covered by host-side unit and integration tests - no hardware required:

@@ -15,12 +15,15 @@ TEST_SRC += src/protocol.cpp
 TEST_SRC += src/pins.cpp
 TEST_SRC += src/cpu.cpp
 TEST_SRC += src/io.cpp
+TEST_SRC += src/display.cpp
 
 build:
 	arduino-cli compile -b $(FQBN) --build-path $(TARGET) .
 
 debug:
-	arduino-cli compile -b $(FQBN) --build-property "build.extra_flags=\"-DDEBUG_TEENSY_BRIDGE\"" .
+	@echo "The Teensy core ignores externally injected defines, so this target cannot work."
+	@echo "Uncomment '#define DEBUG_TEENSY_BRIDGE' in configuration.h and run 'make build' instead."
+	@exit 1
 
 upload:
 	# arduino-cli upload -b $(FQBN) --port $(PORT) --build-path $(TARGET) .

@@ -17,6 +17,22 @@
 // messages and as such doesn't provide any notion of cycles.
 #define CYCLE_DURATION 500
 
+// Uncomment to enable the optional ILI9341 status display connected to the
+// PCB's LCD header (SPI1: MOSI=26, SCK=27, MISO=1, D/C=10; CS grounded and
+// RST pulled high on the board). Shows a live logic analyzer of the CPU
+// signals, address/data readouts and the effective clock rate.
+// Requires libraries: Adafruit ILI9341, Adafruit GFX Library, Adafruit BusIO
+//   arduino-cli lib install "Adafruit ILI9341" "Adafruit GFX Library" "Adafruit BusIO"
+// Note: refreshing the screen costs some throughput in free-run mode
+// (roughly 15%); it has no cost while the CPU is stepped or idle.
+// #define ENABLE_DISPLAY
+
+#define DISPLAY_PIN_DC 10
+#define DISPLAY_PIN_CS -1   // tied to GND on the PCB
+#define DISPLAY_PIN_RST -1  // pulled high on the PCB
+#define DISPLAY_ROTATION 1  // 1 or 3, depending on the screen orientation
+#define DISPLAY_REFRESH_MS 100
+
 // PIN CONFIGURATION
 // For each W65C02 PIN (as in the comments), provide Teensy 4.1 pin no.
 // Pins 8, 21 and 35 are not data pins, so they can be ignored.

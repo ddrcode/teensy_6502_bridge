@@ -67,6 +67,10 @@ void setup_cpu(pins_t& pins)
     write_pin(pins.be, HIGH);
     write_pin(pins.ready, HIGH);
     write_pin(pins.so, HIGH);
+
+    // keep the "M" net defined (see M_PIN in configuration.h)
+    set_pin_mode(M_PIN, OUTPUT);
+    write_pin(M_PIN, LOW);
 }
 
 void reset(pins_t &pins)

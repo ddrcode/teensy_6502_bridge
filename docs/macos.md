@@ -95,6 +95,10 @@ make build
 path/to/teensy_loader_cli --mcu=TEENSY41 -w -v target/teensy_6502_bridge.ino.hex
 ```
 
+Note: the repository Makefiles invoke the tool as `teensy-loader-cli` (the nixpkgs spelling) -
+rename or symlink your natively built binary accordingly if you want `make upload` and
+`make flash` to use it.
+
 The GUI [Teensy Loader](https://www.pjrc.com/teensy/loader_mac.html) from PJRC is
 a third alternative if you prefer clicking.
 

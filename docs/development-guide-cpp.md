@@ -41,7 +41,7 @@ The mode is selected at compile time in `configuration.h` (or via compiler flags
 
 - **Production** (default) - the serial-controlled bridge loop described in the
   [protocol specification](./protocol.md).
-- **Debug** (`#define DEBUG_TEENSY_BRIDGE`, or `make debug`) - the bridge clocks the CPU by itself
+- **Debug** (`#define DEBUG_TEENSY_BRIDGE`) - the bridge clocks the CPU by itself
   (one half-cycle every `CYCLE_DURATION` milliseconds) and prints the address/data/status pins to
   the serial port. No host application is needed - this mode is handy for verifying your wiring
   with nothing but a serial monitor.

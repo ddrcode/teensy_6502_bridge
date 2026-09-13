@@ -30,14 +30,14 @@ with USB CDC via `imxrt-usbd` + `usbd-serial`. No Arduino, no arduino-cli.
 cd firmware-rust
 make build    # cargo build --release (rustup installs the target automatically)
 make hex      # ELF -> teensy-6502-bridge.hex (llvm-objcopy from the toolchain)
-make flash    # flash with teensy_loader_cli (see below)
+make flash    # flash with teensy-loader-cli (see below)
 make test     # host-side unit tests of the protocol/payload logic
 ```
 
-`make flash` expects a native `teensy_loader_cli` on the PATH (on macOS build it
+`make flash` expects a native `teensy-loader-cli` on the PATH (on macOS build it
 from source - see [docs/macos.md](../docs/macos.md); the nixpkgs build does not
 work there). If the Rust firmware is already running, trigger the 134-baud
-reboot first (or let `teensy_loader_cli -w` wait and press the button).
+reboot first (or let `teensy-loader-cli -w` wait and press the button).
 
 ## Source layout
 

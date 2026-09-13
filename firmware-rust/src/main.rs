@@ -146,6 +146,12 @@ impl CpuPins {
         let g3 = &mut gpio3;
         let g4 = &mut gpio4;
 
+        // The "M" net (pin 18) is routed to CPU pin 35 through the PCB's
+        // configuration switch - unused with a W65C02 (switch open), so drive
+        // it low to keep the net and its LED buffer input defined. With a
+        // W65C816 it will carry the E (emulation) status output.
+        out(g1, pins.p18).clear();
+
         let cpu = Self {
             ready: out(g1, pins.p21),
             irq: out(g4, pins.p3),

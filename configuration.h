@@ -25,7 +25,7 @@
 //   arduino-cli lib install "Adafruit ILI9341" "Adafruit GFX Library" "Adafruit BusIO"
 // Note: refreshing the screen costs some throughput in free-run mode
 // (roughly 15%); it has no cost while the CPU is stepped or idle.
-// #define ENABLE_DISPLAY
+#define ENABLE_DISPLAY
 
 #define DISPLAY_PIN_DC 10
 #define DISPLAY_PIN_CS -1   // tied to GND on the PCB

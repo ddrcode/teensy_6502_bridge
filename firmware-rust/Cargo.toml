@@ -1,0 +1,34 @@
+[package]
+name = "teensy-6502-bridge"
+version = "0.2.0"
+authors = ["ddrcode"]
+edition = "2021"
+description = "Bare-metal Rust firmware for the W65C02-Teensy 4.1 bridge"
+license = "MIT"
+
+[dependencies]
+teensy4-bsp = { version = "0.6", features = ["rt"] }
+teensy4-panic = "0.3"
+cortex-m = "0.7"
+usb-device = "0.3"
+usbd-serial = "0.2"
+static_cell = "2"
+
+[lib]
+name = "bridge"
+path = "src/lib.rs"
+
+[[bin]]
+name = "teensy-6502-bridge"
+path = "src/main.rs"
+test = false
+bench = false
+
+[profile.release]
+opt-level = 2
+lto = "thin"
+panic = "abort"
+
+# Don't optimize build dependencies (proc macros) - helps build times
+[profile.release.build-override]
+opt-level = 0

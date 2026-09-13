@@ -20,6 +20,8 @@ other purposes too, e.g.:
 ## Content of this repo
 
 - C++ code for the Teensy 4.1 that enables full control over the W65C02 CPU via a serial port.
+- An alternative [bare-metal Rust firmware](./firmware-rust/) with the same wire protocol
+  (no Arduino toolchain required).
 - [Examples](./examples/) (in C++ and Rust) demonstrating how to use the bridge from a program running on a
   computer.
 - Host-side tooling plus unit/integration tests that exercise the serial protocol and pin-handling logic.
@@ -50,7 +52,7 @@ as the mapping between the CPU and Teensy pins.
    IRQ/ --> |  4      37 | <-- PHI2          ML/ --- |  4        21 | --- RDY
     ML/ <-- |  5     @36 | <-- BE           NMI/ --- |  5        20 | --- SO/
    NMI/ --> |  6      35 | --- NC           SYNC --- |  6        19 | --- BE
-   SYNC <-- |  7     *34 | --> RW/            A0 --- |  7        18 | ---
+   SYNC <-- |  7     *34 | --> RW/            A0 --- |  7        18 | --- M
     VDD --> |  8     *33 | <-> D0             A1 --- |  8        17 | --- RW/
      A0 <-- |  9*    *32 | <-> D1             A2 --- |  9        16 | --- D0
      A1 <-- | 10*    *31 | <-> D2                --- | 10        15 | --- D1
@@ -68,7 +70,9 @@ as the mapping between the CPU and Teensy pins.
                                              A11 --- | 32        33 | --- A12
     * - tri-state pin,                               +--------------+
     @ - async,
-    / - active on low
+    / - active on low,
+    M - routed to CPU pin 35 through the configuration switch (S2) on the PCB;
+        unused with a W65C02, carries the E (emulation) status of a W65C816
 ```
 
 ### Default configuration
@@ -92,7 +96,7 @@ live front panel (logic analyzer, address/data readouts, clock rate) - see the
 | 2          | 3       | PHI1O        |      | Set overflow  | 38      | 20         |
 | 3          | 4       | IRQ          |      | PHI2          | 37      | 13         |
 | 4          | 5       | Memory lock  |      | Bus enable    | 36      | 19         |
-| 5          | 6       | NMI          |      | No connection | 35      |            |
+| 5          | 6       | NMI          |      | NC / E (816)  | 35      | 18 (S2)    |
 | 6          | 7       | SYNC         |      | Read/Write    | 34      | 17         |
 | 3.3V       | 8       | VDD          |      | D0            | 33      | 16         |
 | 7          | 9       | A0           |      | D1            | 32      | 15         |

@@ -2,7 +2,8 @@
 
 This guide covers the two C++ parts of the project: the Teensy firmware (the bridge itself) and
 the C++ host runner in [examples/cpp](../examples/cpp/). For the wire format between them, see the
-[protocol specification](./protocol.md).
+[protocol specification](./protocol.md). (A functionally equivalent Rust firmware also exists -
+see the [Rust guide](./development-guide-rust.md).)
 
 ## Firmware
 

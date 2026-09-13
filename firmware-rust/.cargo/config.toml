@@ -1,0 +1,8 @@
+# The firmware targets the Teensy 4.1 by default.
+# Host-side unit tests must override this: `make test`
+# (which runs `cargo test --lib --target <host-triple>`).
+[build]
+target = "thumbv7em-none-eabihf"
+
+[target.thumbv7em-none-eabihf]
+rustflags = ["-C", "link-arg=-Tt4link.x"]

@@ -11,7 +11,7 @@ build:
 hex: build
 	$(OBJCOPY) -O ihex $(ELF) teensy-6502-bridge.hex
 
-# Requires teensy_loader_cli (a native macOS/Linux build). If the Rust
+# Requires teensy-loader-cli (a native macOS/Linux build). If the Rust
 # firmware is already running, it reboots into the bootloader when the
 # port is opened at 134 baud - otherwise press the button when prompted.
 flash: hex

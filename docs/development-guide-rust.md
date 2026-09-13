@@ -33,11 +33,11 @@ you need those, flash the C++ firmware. To tell them apart, the Rust firmware en
 cd firmware-rust
 make build   # cargo build --release (rustup installs the target on first run)
 make hex     # ELF -> teensy-6502-bridge.hex via the toolchain's llvm-objcopy
-make flash   # flash with teensy_loader_cli
+make flash   # flash with teensy-loader-cli
 make test    # host-side unit tests of the protocol/payload logic
 ```
 
-`make flash` expects a native `teensy_loader_cli` on the PATH (on macOS build it from source -
+`make flash` expects a native `teensy-loader-cli` on the PATH (on macOS build it from source -
 see the [macOS guide](./macos.md); the nixpkgs build does not work there).
 
 Reflashing needs no button press: the running Rust firmware reboots into the HalfKay bootloader

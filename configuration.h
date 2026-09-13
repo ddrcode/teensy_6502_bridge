@@ -27,6 +27,13 @@
 // (roughly 15%); it has no cost while the CPU is stepped or idle.
 #define ENABLE_DISPLAY
 
+// Teensy pin of the "M" net: routed to CPU pin 35 through the PCB's
+// configuration switch (S2). Unused with a W65C02 (keep the switch open, per
+// WDC the NC pin must stay unconnected) - the firmware drives the net low so
+// it and its LED buffer input don't float. With a W65C816 it will carry the
+// E (emulation) status output - see issue #3.
+#define M_PIN 18
+
 #define DISPLAY_PIN_DC 10
 #define DISPLAY_PIN_CS -1   // tied to GND on the PCB
 #define DISPLAY_PIN_RST -1  // pulled high on the PCB

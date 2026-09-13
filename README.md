@@ -28,8 +28,9 @@ other purposes too, e.g.:
 - An explanation of how to wire the Teensy to the W65C02 on a breadboard.
 - Complete [PCB design and schematics](./pcb/) (with some extra features).
 - [Documentation](./docs/): the [protocol specification](./docs/protocol.md), development guides for
-  [C++](./docs/development-guide-cpp.md) and [Rust](./docs/development-guide-rust.md), and a
-  [macOS guide](./docs/macos.md).
+  [C++](./docs/development-guide-cpp.md) and [Rust](./docs/development-guide-rust.md), a
+  [macOS guide](./docs/macos.md), and the [project vision](./docs/vision.md) (the bridge and
+  the machine - two modes of using the board).
 
 ## Wiring
 
